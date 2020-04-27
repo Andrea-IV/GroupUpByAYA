@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
-import android.widget.ListView
+import android.widget.GridView
 
 class GroupActivity : AppCompatActivity() {
 
@@ -20,10 +20,10 @@ class GroupActivity : AppCompatActivity() {
         }
 
         val adapter = GroupAdapter(listItems, this)
-        val listView:ListView = findViewById(R.id.listOfGroups)
-        listView.adapter = adapter
+        val gridView: GridView = findViewById(R.id.listOfGroups)
+        gridView.adapter = adapter
 
-        listView.onItemClickListener = object : AdapterView.OnItemClickListener {
+        gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
             override fun onItemClick(parent: AdapterView<*>, view: View,
                                      position: Int, id: Long) {
                 val intent = Intent(this@GroupActivity, MapsActivity::class.java)
