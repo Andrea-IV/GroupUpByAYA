@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.GridView
-import com.andrea.groupup.Adapter.GroupAdapter
+import com.andrea.groupup.Adapters.GroupAdapter
 import com.andrea.groupup.Models.Group
 
 class GroupActivity : AppCompatActivity() {

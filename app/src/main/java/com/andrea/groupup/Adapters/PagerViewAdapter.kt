@@ -1,4 +1,4 @@
-package com.andrea.groupup.Adapter
+package com.andrea.groupup.Adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

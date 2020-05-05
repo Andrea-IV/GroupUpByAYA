@@ -1,4 +1,4 @@
-package com.andrea.groupup.Adapter
+package com.andrea.groupup.Adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -31,8 +31,7 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
             val inflater = LayoutInflater.from(context)
             view = inflater.inflate(R.layout.list_of_groups, viewGroup, false)
 
-            viewHolder =
-                GroupViewHolder()
+            viewHolder = GroupViewHolder()
             viewHolder.imageView = view!!.findViewById<View>(R.id.profile_image) as ImageView
             viewHolder.titleView = view.findViewById<View>(R.id.userTitle) as TextView
             viewHolder.numberOfPeople = view.findViewById<View>(R.id.people) as TextView

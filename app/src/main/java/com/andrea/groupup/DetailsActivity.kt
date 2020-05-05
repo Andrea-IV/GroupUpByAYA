@@ -1,12 +1,10 @@
 package com.andrea.groupup
 
 import android.os.Bundle
-import android.widget.Adapter
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.andrea.groupup.Adapter.PagerViewAdapter
+import com.andrea.groupup.Adapters.PagerViewAdapter
 
 class DetailsActivity : AppCompatActivity(){
 
