@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.GridView
 import com.andrea.groupup.Adapter.GroupAdapter
+import com.andrea.groupup.Models.Group
 
 class GroupActivity : AppCompatActivity() {
 
@@ -17,7 +18,14 @@ class GroupActivity : AppCompatActivity() {
         val listItems = arrayListOf<Group>()
 
         for (i in 0 until 5) {
-            listItems.add(Group(i, "The " + i + " Group", 3, 0))
+            listItems.add(
+                Group(
+                    i,
+                    "The " + i + " Group",
+                    3,
+                    0
+                )
+            )
         }
 
         val adapter = GroupAdapter(listItems, this)

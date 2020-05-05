@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import com.andrea.groupup.Group
+import com.andrea.groupup.Models.Group
 import com.andrea.groupup.R
 
 class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
