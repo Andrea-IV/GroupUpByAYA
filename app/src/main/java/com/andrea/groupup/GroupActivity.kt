@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.GridView
+import com.andrea.groupup.Adapter.GroupAdapter
 
 class GroupActivity : AppCompatActivity() {
 
@@ -16,7 +17,7 @@ class GroupActivity : AppCompatActivity() {
         val listItems = arrayListOf<Group>()
 
         for (i in 0 until 5) {
-            listItems.add(Group(i, "The " + i + " Group", 0))
+            listItems.add(Group(i, "The " + i + " Group", 3, 0))
         }
 
         val adapter = GroupAdapter(listItems, this)
@@ -26,7 +27,7 @@ class GroupActivity : AppCompatActivity() {
         gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
             override fun onItemClick(parent: AdapterView<*>, view: View,
                                      position: Int, id: Long) {
-                val intent = Intent(this@GroupActivity, MapsActivity::class.java)
+                val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
                 startActivity(intent)
             }
         }

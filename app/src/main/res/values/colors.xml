@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#378294</color>
     <color name="colorAccent">#1B44D8</color>
     <color name="ghost">#0AFFFFFF</color>
+    <color name="borderProfile">#707070</color>
+    <color name="borderGrid">#F3F3F7</color>
 </resources>

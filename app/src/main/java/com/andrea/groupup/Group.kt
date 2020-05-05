@@ -1,13 +1,5 @@
 package com.andrea.groupup
 
-class Group {
-    var id: Int? = null
-    var title: String? = null
-    var image: Int = 0
+class Group(var id: Int?, var title: String?, var numberOfPeople: Int, var image: Int) {
 
-    constructor(id: Int?, title: String?, image: Int) {
-        this.id = id
-        this.title = title
-        this.image = image
-    }
 }
