@@ -19,12 +19,7 @@ class GroupActivity : AppCompatActivity() {
 
         for (i in 0 until 5) {
             listItems.add(
-                Group(
-                    i,
-                    "The " + i + " Group",
-                    3,
-                    0
-                )
+                Group(i, "The " + i + " Group", 3, 0)
             )
         }
 
