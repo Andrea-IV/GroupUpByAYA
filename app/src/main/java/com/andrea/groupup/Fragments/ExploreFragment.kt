@@ -25,7 +25,7 @@ class ExploreFragment : Fragment() {
 
         for (i in 0 until 10) {
             listItems.add(
-                Place(i, "Gundam Statue", "Lorem ipsum dolor sit amet, \n" +
+                Place(i, "Gundam Statue", "Paris, France","Lorem ipsum dolor sit amet, \n" +
                         "consectetur adipiscing elit, sed do\n" +
                         "eiusmod tempor incididunt ut labore \n" +
                         "et dolore magna aliqua. Ut enim ad\n" +

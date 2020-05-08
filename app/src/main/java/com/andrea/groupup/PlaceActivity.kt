@@ -15,7 +15,7 @@ class PlaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_place)
 
-        val place = Place(1, "Gundam Statue", "Lorem ipsum dolor sit amet, \n" +
+        val place = Place(1, "Paris, France","Gundam Statue", "Lorem ipsum dolor sit amet, \n" +
                 "consectetur adipiscing elit, sed do\n" +
                 "eiusmod tempor incididunt ut labore \n" +
                 "et dolore magna aliqua. Ut enim ad\n" +
