@@ -1,6 +1,7 @@
 package com.andrea.groupup.Adapters
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,8 +9,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.andrea.groupup.Models.Place
+import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
 
+const val PLACE_STRING = "PLACE"
 class PlaceAdapter(private val places: ArrayList<Place>, private val ctx: Context) : RecyclerView.Adapter<PlaceAdapter.PlaceHolder>()  {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceHolder {
@@ -32,7 +35,13 @@ class PlaceAdapter(private val places: ArrayList<Place>, private val ctx: Contex
         }
 
         override fun onClick(v: View) {
-            // TODO
+            val place_string = place.toString()
+            val context = itemView.context
+            val intent = Intent(context, PlaceActivity::class.java).apply {
+                putExtra(PLACE_STRING, place_string)
+            }
+            context.startActivity(intent)
+
         }
 
         fun bindPlace(place: Place) {

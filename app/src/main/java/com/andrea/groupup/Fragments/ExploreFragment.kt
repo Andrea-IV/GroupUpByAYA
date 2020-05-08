@@ -23,9 +23,18 @@ class ExploreFragment : Fragment() {
         val view: View = inflater.inflate(R.layout.fragment_explore, container, false)
         val listItems = arrayListOf<Place>()
 
-        for (i in 0 until 5) {
+        for (i in 0 until 10) {
             listItems.add(
-                Place(i, "Gundam Statue", i)
+                Place(i, "Gundam Statue", "Lorem ipsum dolor sit amet, \n" +
+                        "consectetur adipiscing elit, sed do\n" +
+                        "eiusmod tempor incididunt ut labore \n" +
+                        "et dolore magna aliqua. Ut enim ad\n" +
+                        "minim veniam, quis nostrud \n" +
+                        "exercitation ullamco laboris nisi ut \n" +
+                        "aliquip ex ea commodo consequat. \n" +
+                        "Duis aute irure dolor in reprehenderit\n" +
+                        "in voluptate velit esse cillum dolore\n" +
+                        " eu fugiat nulla pariatur.", 4.5,i)
             )
         }
 
