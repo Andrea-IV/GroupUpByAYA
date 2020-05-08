@@ -7,4 +7,5 @@
     <color name="borderProfile">#707070</color>
     <color name="borderGrid">#F3F3F7</color>
     <color name="basicBackground">#F6F8FA</color>
+    <color name="mapBlue">#76C7CE</color>
 </resources>
