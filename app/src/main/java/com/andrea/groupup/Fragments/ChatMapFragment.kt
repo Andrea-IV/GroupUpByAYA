@@ -22,6 +22,7 @@ import com.andrea.groupup.Http.LocalPlaceHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.LocalPlace
+import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
 import com.beust.klaxon.JsonArray
@@ -129,7 +130,7 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
 
     private fun getLocalPlaces(target: LatLng) {
         Log.d(TAG, "getLocalPlaces + " + target.latitude + " " + target.longitude)
-        LocalPlaceHttp(this.requireContext()).getAll(object: VolleyCallbackArray {
+        LocalPlaceHttp(this.requireContext()).getByLatLng(target.latitude.toString(), target.longitude.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
@@ -169,24 +170,26 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
     }
 
     private fun displayLocalPlace(marker: Marker) {
+        Log.d(TAG, "displayLocalPlace " + marker.title)
         val localPlace = localPlaces.get(marker.tag)
         println(localPlace)
-       // val intent = Intent(this@GroupeActivity, DetailsActivity::class.java)
-        //intent.putExtra("localPlace", Gson().toJson(localPlace))
-        //startActivity(intent)
+        val intent = Intent(activity, PlaceActivity::class.java)
+        intent.putExtra("localPlace", Gson().toJson(localPlace))
+        startActivity(intent)
     }
     // -------------------------
 
-    override fun onMapReady(mMap: GoogleMap) {
+    override fun onMapReady(gMap: GoogleMap) {
         Log.d(TAG, "onMapReady")
-        this.mMap = mMap
+        mMap = gMap
+        mMap.setOnMyLocationButtonClickListener(this)
+        mMap.setOnCameraIdleListener(this)
+        mMap.setOnMarkerClickListener(this)
 
         if(checkPermission()) {
             mLocationPermissionGranted = true
             getDeviceLocation();
             mMap.isMyLocationEnabled = true
-            mMap.setOnMyLocationButtonClickListener(this)
-            mMap.setOnCameraIdleListener(this)
         } else {
             requestPermissions()
         }
@@ -195,6 +198,7 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
+        Log.d(TAG, "onMarkerClick")
         displayLocalPlace(marker)
         return true
     }

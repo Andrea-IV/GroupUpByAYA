@@ -10,4 +10,8 @@ class LocalPlaceHttp (val context: Context) {
     fun getAll(volleyCallbackArray: VolleyCallbackArray) {
         http.getAll(URL, volleyCallbackArray)
     }
+
+    fun getByLatLng(lat: String, lng: String, volleyCallbackArray: VolleyCallbackArray) {
+        http.getAll("$URL/lat/$lat/lng/$lng", volleyCallbackArray)
+    }
 }
