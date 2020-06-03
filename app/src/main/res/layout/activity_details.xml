@@ -78,13 +78,13 @@
             />
 
         <ImageButton
-            android:id="@+id/settingsButton"
+            android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:padding="15dp"
             android:background="@android:color/white"
-            android:src="@drawable/ic_settings_black"
+            android:src="@drawable/ic_navigate_before_black"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"

@@ -6,9 +6,19 @@
     <string name="group_title">Your groups</string>
     <string name="explore_title">Explore</string>
     <string name="schedule_title">Schedule</string>
+    <string name="user_title">Grouped Up</string>
+    <string name="settings_title">Settings</string>
     <string name="description">Description</string>
     <string name="tags">Tags</string>
     <string name="toMap">Place on the map</string>
+    <string name="searchHint">Search here…</string>
+    <string name="numberOfPeople">\ Participants</string>
+    <string name="groupNameHint">Group name</string>
+    <string name="errorEmpty">Field is empty</string>
+    <string name="create">Create</string>
+    <string name="menu_profile">Profile</string>
+    <string name="menu_notification">Notifications</string>
+    <string name="menu_friend">Friends</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

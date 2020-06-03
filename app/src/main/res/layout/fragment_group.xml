@@ -3,12 +3,46 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Fragments.GroupFragment">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:context=".Fragments.GroupFragment"
+        android:background="@color/basicBackground">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="@string/hello_blank_fragment" />
+            android:orientation="vertical">
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:background="@drawable/top_shape_title"
+                android:paddingStart="20dp"
+                android:gravity="center_vertical">
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/black"
+                    android:text="@string/user_title"/>
+            <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:background="@drawable/dot_selected"
+                    android:src="@drawable/ic_add_white"
+                    android:layout_marginStart="5dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.88"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.90999997" />
+        </LinearLayout>
+        <ListView
+                android:id="@+id/listOfParticipants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20.0sp"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="20.0sp"/>
+    </LinearLayout>
 
 </FrameLayout>

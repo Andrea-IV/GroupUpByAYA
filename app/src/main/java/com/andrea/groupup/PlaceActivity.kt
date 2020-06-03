@@ -15,15 +15,15 @@ class PlaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_place)
 
-        val place = Place(1, "Paris, France","Gundam Statue", "Lorem ipsum dolor sit amet, \n" +
-                "consectetur adipiscing elit, sed do\n" +
-                "eiusmod tempor incididunt ut labore \n" +
-                "et dolore magna aliqua. Ut enim ad\n" +
-                "minim veniam, quis nostrud \n" +
-                "exercitation ullamco laboris nisi ut \n" +
-                "aliquip ex ea commodo consequat. \n" +
-                "Duis aute irure dolor in reprehenderit\n" +
-                "in voluptate velit esse cillum dolore\n" +
+        val place = Place(1,"Gundam Statue", "Paris, France", "Lorem ipsum dolor sit amet, " +
+                "consectetur adipiscing elit, sed do " +
+                "eiusmod tempor incididunt ut labore " +
+                "et dolore magna aliqua. Ut enim ad " +
+                "minim veniam, quis nostrud " +
+                "exercitation ullamco laboris nisi ut " +
+                "aliquip ex ea commodo consequat. " +
+                "Duis aute irure dolor in reprehenderit " +
+                "in voluptate velit esse cillum dolore" +
                 " eu fugiat nulla pariatur.", 4.5,1)
 
         findViewById<TextView>(R.id.title).text = place.title

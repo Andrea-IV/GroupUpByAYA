@@ -12,7 +12,7 @@ class DetailsActivity : AppCompatActivity(){
     private lateinit var chatMapButton: ImageButton
     private lateinit var calendarButton: ImageButton
     private lateinit var exploreButton: ImageButton
-    private lateinit var settingsButton: ImageButton
+    private lateinit var backButton: ImageButton
 
     private lateinit var mViewPager: ViewPager
     private lateinit var mPagerAdapter: PagerViewAdapter
@@ -27,7 +27,7 @@ class DetailsActivity : AppCompatActivity(){
         chatMapButton = findViewById(R.id.chatButton)
         calendarButton = findViewById(R.id.dateButton)
         exploreButton = findViewById(R.id.pinButton)
-        settingsButton = findViewById(R.id.settingsButton)
+        backButton = findViewById(R.id.backButton)
 
         mPagerAdapter = PagerViewAdapter(supportFragmentManager)
         mViewPager.adapter = mPagerAdapter
@@ -49,8 +49,8 @@ class DetailsActivity : AppCompatActivity(){
             mViewPager.currentItem = 3
         }
 
-        settingsButton.setOnClickListener {
-            mViewPager.currentItem = 4
+        backButton.setOnClickListener {
+            finish()
         }
 
         mViewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener{
@@ -82,35 +82,24 @@ class DetailsActivity : AppCompatActivity(){
             chatMapButton.setImageResource(R.drawable.ic_chat_black)
             calendarButton.setImageResource(R.drawable.ic_today_black)
             exploreButton.setImageResource(R.drawable.ic_pin_drop_black)
-            settingsButton.setImageResource(R.drawable.ic_settings_black)
         }
         if(position == 1){
             groupButton.setImageResource(R.drawable.ic_group_black)
             chatMapButton.setImageResource(R.drawable.ic_chat_blue)
             calendarButton.setImageResource(R.drawable.ic_today_black)
             exploreButton.setImageResource(R.drawable.ic_pin_drop_black)
-            settingsButton.setImageResource(R.drawable.ic_settings_black)
         }
         if(position == 2){
             groupButton.setImageResource(R.drawable.ic_group_black)
             chatMapButton.setImageResource(R.drawable.ic_chat_black)
             calendarButton.setImageResource(R.drawable.ic_today_blue)
             exploreButton.setImageResource(R.drawable.ic_pin_drop_black)
-            settingsButton.setImageResource(R.drawable.ic_settings_black)
         }
         if(position == 3){
             groupButton.setImageResource(R.drawable.ic_group_black)
             chatMapButton.setImageResource(R.drawable.ic_chat_black)
             calendarButton.setImageResource(R.drawable.ic_today_black)
             exploreButton.setImageResource(R.drawable.ic_pin_drop_blue)
-            settingsButton.setImageResource(R.drawable.ic_settings_black)
-        }
-        if(position == 4){
-            groupButton.setImageResource(R.drawable.ic_group_black)
-            chatMapButton.setImageResource(R.drawable.ic_chat_black)
-            calendarButton.setImageResource(R.drawable.ic_today_black)
-            exploreButton.setImageResource(R.drawable.ic_pin_drop_black)
-            settingsButton.setImageResource(R.drawable.ic_settings_blue)
         }
     }
 }

@@ -9,10 +9,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.R
+import java.util.*
+import kotlin.collections.ArrayList
 
 class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
     ArrayAdapter<Group>(ctx,
         R.layout.list_of_groups, items) {
+
+    var arrayList = items
+    var tempList = ArrayList(arrayList)
 
     //view holder is used to prevent findViewById calls
     private class GroupViewHolder {
@@ -41,10 +46,11 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
             viewHolder = view.tag as GroupViewHolder
         }
 
-        val group = getItem(i)
+        val group = arrayList.get(i)
         viewHolder.titleView!!.text = group!!.title
         viewHolder.idView!!.text = group.id.toString()
-        viewHolder.numberOfPeople!!.text = group.id.toString() + " Users"
+        val text = group.numberOfPeople.toString() + context.resources.getString(R.string.numberOfPeople)
+        viewHolder.numberOfPeople!!.text = text
         if(group.image != 0){
             viewHolder.imageView!!.setImageResource(group.image)
         }
@@ -52,5 +58,22 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
         view.tag = viewHolder
 
         return view
+    }
+
+    fun filter(text: String?) {
+        val text = text!!.toLowerCase(Locale.getDefault())
+        arrayList.clear()
+
+        if (text.length == 0) {
+            arrayList.addAll(tempList)
+        } else {
+            for (i in 0..tempList.size - 1) {
+                if (tempList[i].title!!.toLowerCase(Locale.getDefault()).contains(text)) {
+                    arrayList.add(tempList.get(i))
+                }
+            }
+        }
+
+        notifyDataSetChanged()
     }
 }

@@ -20,15 +20,12 @@ internal class PagerViewAdapter (fm:FragmentManager?) : FragmentPagerAdapter(fm)
             3 -> {
                 ExploreFragment()
             }
-            4 -> {
-                SettingsFragment()
-            }
             else -> GroupFragment()
         }
     }
 
     override fun getCount(): Int {
-        return 5
+        return 4
     }
 
 }

@@ -8,16 +8,6 @@
         android:layout_height="240dp"
         android:background="@drawable/grid_border">
 
-    <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/more"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
     <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image"
             android:layout_width="100dp"
