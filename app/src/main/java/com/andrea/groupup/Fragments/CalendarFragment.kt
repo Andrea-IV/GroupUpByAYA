@@ -23,7 +23,7 @@ class CalendarFragment : Fragment() {
         val view: View = inflater.inflate(R.layout.fragment_calendar, container, false)
         val listItems = arrayListOf<Event>()
 
-        for (i in 0 until 10) {
+        for (i in 0 until 4) {
             listItems.add(Event(i, ((i + 14).toString() + " Mai"), "Paris, France"))
         }
 

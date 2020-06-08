@@ -8,8 +8,13 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
+import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.Group
+import com.andrea.groupup.Models.User
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.gson.Gson
+import org.json.JSONArray
+import org.json.JSONObject
 
 
 class GroupActivity : AppCompatActivity() {
@@ -17,16 +22,27 @@ class GroupActivity : AppCompatActivity() {
     private lateinit var adapter: GroupAdapter
     private lateinit var searchView: SearchView
     private lateinit var gridView: GridView
+    private lateinit var user: User
     private var listItems: ArrayList<Group> = arrayListOf<Group>()
+    private var groups = HashMap<Int, Group>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_group)
 
-        for (i in 1 until 8) {
-            listItems.add(
-                Group(i, "The " + i + " Group", 3, 0)
-            )
+        val userString:String = intent.getStringExtra("User")
+        val gson:Gson = Gson()
+        val firstIndex:Int =  userString.indexOf("\"groups\":") + 9
+        val secondIndex:Int =  userString.indexOf("]") + 1
+
+        Log.d("GROUP", userString.substring(firstIndex, secondIndex))
+        val groupJson = JSONArray(userString.substring(firstIndex, secondIndex))
+
+        user = gson.fromJson(userString, User::class.java)
+        val groupJsonArray = Mapper().mapper<JSONArray, List<Group>>(groupJson)
+        for(group in groupJsonArray) {
+            listItems.add(group)
         }
 
         adapter = GroupAdapter(listItems, this)
@@ -71,7 +87,7 @@ class GroupActivity : AppCompatActivity() {
                 if(view.findViewById<EditText>(R.id.newGroup).text.isNotEmpty()){
                     view.findViewById<TextView>(R.id.error).visibility = View.GONE
 
-                    listItems.add(Group(9, view.findViewById<EditText>(R.id.newGroup).text.toString(), 1, 0))
+                    //listItems.add(Group(9, view.findViewById<EditText>(R.id.newGroup).text.toString(), 1, 0))
                     gridView.invalidateViews();
                     dialog.dismiss()
                 }else{
@@ -91,7 +107,26 @@ class GroupActivity : AppCompatActivity() {
             popupMenu.setOnMenuItemClickListener { item ->
                 when(item.itemId){
                     R.id.profile -> {
-                        Toast.makeText(this, "Profile", Toast.LENGTH_LONG).show()
+                        val dialog = BottomSheetDialog(this)
+                        val view = layoutInflater.inflate(R.layout.dialog_profile, null)
+                        dialog.setContentView(view)
+
+                        val username: EditText = view.findViewById(R.id.username)
+                        username.hint = user.username
+                        val firstName: EditText = view.findViewById(R.id.firstname_value)
+                        firstName.hint = user.firstname
+                        val lastName: EditText = view.findViewById(R.id.lastname_value)
+                        lastName.hint = user.lastname
+                        val email: EditText = view.findViewById(R.id.email_value)
+                        email.hint = user.email
+                        val password: EditText = view.findViewById(R.id.password_value)
+                        password.hint = this.resources.getString(R.string.old_password)
+                        val newPassword: EditText = view.findViewById(R.id.new_password_value)
+                        newPassword.hint = this.resources.getString(R.string.new_password)
+                        val confirmPassword: EditText = view.findViewById(R.id.confirm_password_value)
+                        confirmPassword.hint = this.resources.getString(R.string.confirm_password)
+
+                        dialog.show()
                         true
                     }
                     R.id.notification -> {

@@ -24,7 +24,7 @@ class GroupFragment : Fragment() {
         val listItems = arrayListOf<User>()
 
         for (i in 0 until 5) {
-            listItems.add(User(i, "Mister ICU"))
+            //listItems.add(User(i, "Mister ICU"))
         }
 
         val adapter = ParticipantAdapter(listItems, requireContext())

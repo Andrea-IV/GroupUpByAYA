@@ -40,7 +40,7 @@ class ParticipantAdapter(items: ArrayList<User>, ctx: Context) :
 
         val participant = getItem(i)
         //viewHolder.image!!.src = event!!.date
-        viewHolder.name!!.text = participant.name
+        viewHolder.name!!.text = participant.username
 
         view.tag = viewHolder
 

@@ -47,13 +47,13 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
         }
 
         val group = arrayList.get(i)
-        viewHolder.titleView!!.text = group!!.title
+        viewHolder.titleView!!.text = group!!.name
         viewHolder.idView!!.text = group.id.toString()
-        val text = group.numberOfPeople.toString() + context.resources.getString(R.string.numberOfPeople)
-        viewHolder.numberOfPeople!!.text = text
+        //val text = group.numberOfPeople.toString() + context.resources.getString(R.string.numberOfPeople)
+        /*viewHolder.numberOfPeople!!.text = text
         if(group.image != 0){
             viewHolder.imageView!!.setImageResource(group.image)
-        }
+        }*/
 
         view.tag = viewHolder
 
@@ -68,7 +68,7 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
             arrayList.addAll(tempList)
         } else {
             for (i in 0..tempList.size - 1) {
-                if (tempList[i].title!!.toLowerCase(Locale.getDefault()).contains(text)) {
+                if (tempList[i].name!!.toLowerCase(Locale.getDefault()).contains(text)) {
                     arrayList.add(tempList.get(i))
                 }
             }
