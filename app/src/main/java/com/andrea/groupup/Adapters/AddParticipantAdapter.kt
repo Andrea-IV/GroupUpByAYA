@@ -7,15 +7,14 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import com.andrea.groupup.Models.Event
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ParticipantAdapter(items: ArrayList<User>, ctx: Context) :
+class AddParticipantAdapter(items: ArrayList<User>, ctx: Context) :
     ArrayAdapter<User>(ctx,
-        R.layout.list_of_participants, items) {
+        R.layout.list_of_add_participants, items) {
 
     var arrayList = items
     var tempList = ArrayList(arrayList)
@@ -33,7 +32,7 @@ class ParticipantAdapter(items: ArrayList<User>, ctx: Context) :
 
         if (view == null) {
             val inflater = LayoutInflater.from(context)
-            view = inflater.inflate(R.layout.list_of_participants, viewGroup, false)
+            view = inflater.inflate(R.layout.list_of_add_participants, viewGroup, false)
 
             viewHolder = ParticipantViewHolder()
             viewHolder.image = view!!.findViewById<View>(R.id.profile_image) as ImageView

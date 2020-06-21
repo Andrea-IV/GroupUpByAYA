@@ -21,12 +21,14 @@ class DetailsActivity : AppCompatActivity(){
     private lateinit var mPagerAdapter: PagerViewAdapter
 
     lateinit var group: Group
+    lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
 
         group = intent.getSerializableExtra("Group") as Group
+        token = intent.getStringExtra("Token")
 
         mViewPager = findViewById(R.id.mViewPager)
 

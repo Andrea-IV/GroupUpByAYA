@@ -24,6 +24,7 @@
                     android:textColor="@android:color/black"
                     android:text="@string/user_title"/>
             <ImageView
+                    android:id="@+id/addUser"
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:background="@drawable/dot_selected"

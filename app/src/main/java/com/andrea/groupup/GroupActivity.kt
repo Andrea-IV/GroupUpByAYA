@@ -9,7 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
-import com.andrea.groupup.Http.Mapper.GroupHttp
+import com.andrea.groupup.Http.GroupHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Http.VolleyCallbackArray
@@ -20,10 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import org.json.JSONArray
 import org.json.JSONObject
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 
 class GroupActivity : AppCompatActivity() {
@@ -49,7 +46,8 @@ class GroupActivity : AppCompatActivity() {
         token = tokenString.substring(tokenString.indexOf(" ") + 1, tokenString.length)
         context = this
 
-        GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
+        GroupHttp(this)
+            .getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
                 val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
@@ -66,9 +64,8 @@ class GroupActivity : AppCompatActivity() {
                     override fun onItemClick(parent: AdapterView<*>, view: View,
                                              position: Int, id: Long) {
                         val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
-                        Log.d("GROUP2", position.toString())
-                        Log.d("GROUP2", listItems[0].toString())
                         intent.putExtra("Group", listItems[position])
+                        intent.putExtra("Token", token)
                         startActivity(intent)
                     }
                 }

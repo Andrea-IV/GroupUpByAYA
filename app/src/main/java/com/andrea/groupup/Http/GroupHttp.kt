@@ -1,4 +1,4 @@
-package com.andrea.groupup.Http.Mapper
+package com.andrea.groupup.Http
 
 import android.content.Context
 import com.andrea.groupup.Constants
@@ -17,5 +17,9 @@ class GroupHttp(val context: Context)  {
 
     fun getGroupForUser(id: String, volleyCallbackArray: VolleyCallbackArray) {
         http.getAll("$URL/user/$id", volleyCallbackArray)
+    }
+
+    fun addToGroup(idGroup: String, idUser: String, token: String, volleyCallback: VolleyCallback){
+        http.postWithToken("$URL/$idGroup/user/$idUser", volleyCallback, JSONObject("{}"), token)
     }
 }
