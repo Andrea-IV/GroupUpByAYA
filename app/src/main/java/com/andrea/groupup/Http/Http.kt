@@ -3,8 +3,10 @@ package com.andrea.groupup.Http
 import android.content.Context
 import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 
@@ -40,6 +42,21 @@ class Http {
             { response -> run { callback.onResponse(response)} },
             { error -> run { callback.onError(error)} }
         )
+
+        queue.add(request)
+    }
+
+    fun postWithToken(url: String, callback: VolleyCallback, params: JSONObject, tokenCode: String): Unit {
+        val request = object : JsonObjectRequest(Request.Method.POST, url, params,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers.put("Content-Type", "application/json")
+                headers.put("Authorization", "Bearer $tokenCode")
+                return headers
+            }
+        }
 
         queue.add(request)
     }

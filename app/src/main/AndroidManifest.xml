@@ -16,6 +16,7 @@
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true"
             tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".FriendsActivity"></activity>
 
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
@@ -47,8 +48,9 @@
         <activity
                 android:name=".PlaceActivity"
                 android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".EventActivity"
-                android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+                android:name=".EventActivity"
+                android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

@@ -1,10 +1,13 @@
 package com.andrea.groupup
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.andrea.groupup.Adapters.PagerViewAdapter
+import com.andrea.groupup.Models.Group
+import com.google.gson.Gson
 
 class DetailsActivity : AppCompatActivity(){
 
@@ -17,9 +20,13 @@ class DetailsActivity : AppCompatActivity(){
     private lateinit var mViewPager: ViewPager
     private lateinit var mPagerAdapter: PagerViewAdapter
 
+    lateinit var group: Group
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
+
+        group = intent.getSerializableExtra("Group") as Group
 
         mViewPager = findViewById(R.id.mViewPager)
 

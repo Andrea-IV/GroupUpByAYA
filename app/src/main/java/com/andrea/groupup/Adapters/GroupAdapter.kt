@@ -49,11 +49,11 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
         val group = arrayList.get(i)
         viewHolder.titleView!!.text = group!!.name
         viewHolder.idView!!.text = group.id.toString()
-        //val text = group.numberOfPeople.toString() + context.resources.getString(R.string.numberOfPeople)
-        /*viewHolder.numberOfPeople!!.text = text
-        if(group.image != 0){
-            viewHolder.imageView!!.setImageResource(group.image)
-        }*/
+        val text = group.members.size.toString() + context.resources.getString(R.string.numberOfPeople)
+        viewHolder.numberOfPeople!!.text = text
+        /* if(group.image != 0){
+             viewHolder.imageView!!.setImageResource(group.image)
+         }*/
 
         view.tag = viewHolder
 

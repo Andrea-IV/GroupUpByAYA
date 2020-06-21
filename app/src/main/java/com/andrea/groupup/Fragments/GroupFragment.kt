@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ListView
 import com.andrea.groupup.Adapters.ParticipantAdapter
+import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
 
 import com.andrea.groupup.R
@@ -16,15 +17,19 @@ import com.andrea.groupup.R
 /**
  * A simple [Fragment] subclass.
  */
-class GroupFragment : Fragment() {
+class GroupFragment : BaseFragment() {
+
+    lateinit var group: Group
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_group, container, false)
+        group = ACTIVITY.group
+
         val listItems = arrayListOf<User>()
 
-        for (i in 0 until 5) {
-            //listItems.add(User(i, "Mister ICU"))
+        for (member in group.members) {
+            listItems.add(member)
         }
 
         val adapter = ParticipantAdapter(listItems, requireContext())

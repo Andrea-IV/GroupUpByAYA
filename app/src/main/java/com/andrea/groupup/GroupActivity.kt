@@ -1,5 +1,6 @@
 package com.andrea.groupup
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -8,13 +9,21 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
+import com.andrea.groupup.Http.Mapper.GroupHttp
 import com.andrea.groupup.Http.Mapper.Mapper
+import com.andrea.groupup.Http.VolleyCallback
+import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
+import com.android.volley.VolleyError
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class GroupActivity : AppCompatActivity() {
@@ -23,8 +32,9 @@ class GroupActivity : AppCompatActivity() {
     private lateinit var searchView: SearchView
     private lateinit var gridView: GridView
     private lateinit var user: User
+    private lateinit var token: String
+    private lateinit var context: Context
     private var listItems: ArrayList<Group> = arrayListOf<Group>()
-    private var groups = HashMap<Int, Group>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,31 +42,44 @@ class GroupActivity : AppCompatActivity() {
         setContentView(R.layout.activity_group)
 
         val userString:String = intent.getStringExtra("User")
+
         val gson:Gson = Gson()
-        val firstIndex:Int =  userString.indexOf("\"groups\":") + 9
-        val secondIndex:Int =  userString.indexOf("]") + 1
-
-        Log.d("GROUP", userString.substring(firstIndex, secondIndex))
-        val groupJson = JSONArray(userString.substring(firstIndex, secondIndex))
-
         user = gson.fromJson(userString, User::class.java)
-        val groupJsonArray = Mapper().mapper<JSONArray, List<Group>>(groupJson)
-        for(group in groupJsonArray) {
-            listItems.add(group)
-        }
+        val tokenString: String = JSONObject(userString).get("token").toString()
+        token = tokenString.substring(tokenString.indexOf(" ") + 1, tokenString.length)
+        context = this
 
-        adapter = GroupAdapter(listItems, this)
+        GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                Log.d("GROUP", array.toString())
+                val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
+                for (group: Group in groupRes){
+                    listItems.add(group)
+                }
 
-        gridView = findViewById(R.id.listOfGroups)
-        gridView.adapter = adapter
+                adapter = GroupAdapter(listItems, context)
 
-        gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
-            override fun onItemClick(parent: AdapterView<*>, view: View,
-                                     position: Int, id: Long) {
-                val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
-                startActivity(intent)
+                gridView = findViewById(R.id.listOfGroups)
+                gridView.adapter = adapter
+
+                gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
+                    override fun onItemClick(parent: AdapterView<*>, view: View,
+                                             position: Int, id: Long) {
+                        val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
+                        Log.d("GROUP2", position.toString())
+                        Log.d("GROUP2", listItems[0].toString())
+                        intent.putExtra("Group", listItems[position])
+                        startActivity(intent)
+                    }
+                }
             }
-        }
+
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.toString())
+            }
+        })
 
         // SEARCH INIT
         searchView = findViewById(R.id.searchBar)
@@ -87,9 +110,22 @@ class GroupActivity : AppCompatActivity() {
                 if(view.findViewById<EditText>(R.id.newGroup).text.isNotEmpty()){
                     view.findViewById<TextView>(R.id.error).visibility = View.GONE
 
-                    //listItems.add(Group(9, view.findViewById<EditText>(R.id.newGroup).text.toString(), 1, 0))
-                    gridView.invalidateViews();
-                    dialog.dismiss()
+                    Log.d("GROUP", token)
+
+                    GroupHttp(this).createGroup(view.findViewById<EditText>(R.id.newGroup).text.toString(), token, object: VolleyCallback {
+                        override fun onResponse(jsonObject: JSONObject) {
+                            Log.d("GROUP", jsonObject.toString())
+                            val gson:Gson = Gson()
+                            listItems.add(gson.fromJson(jsonObject.toString(), Group::class.java))
+                            gridView.invalidateViews();
+                            dialog.dismiss()
+                        }
+
+                        override fun onError(error: VolleyError) {
+                            Log.e("USER", "login - onError")
+                            Log.e("USER", error.toString())
+                        }
+                    })
                 }else{
                     view.findViewById<TextView>(R.id.error).text = getString(R.string.errorEmpty)
                     view.findViewById<TextView>(R.id.error).visibility = View.VISIBLE
