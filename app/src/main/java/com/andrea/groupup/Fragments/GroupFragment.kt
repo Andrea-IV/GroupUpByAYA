@@ -7,10 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.AdapterView
-import android.widget.ImageView
-import android.widget.ListView
-import android.widget.SearchView
+import android.widget.*
 import com.andrea.groupup.Adapters.AddParticipantAdapter
 import com.andrea.groupup.Adapters.ParticipantAdapter
 import com.andrea.groupup.Http.GroupHttp
@@ -27,6 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.properties.Delegates
 
 /**
  * A simple [Fragment] subclass.
@@ -34,7 +32,9 @@ import org.json.JSONObject
 class GroupFragment : BaseFragment() {
 
     lateinit var group: Group
+    lateinit var user: User
     lateinit var token: String
+    var isAdmin: Boolean = false
 
     lateinit var addAdapter: AddParticipantAdapter
     lateinit var userRes: List<User>
@@ -44,15 +44,19 @@ class GroupFragment : BaseFragment() {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_group, container, false)
         group = ACTIVITY.group
+        user = ACTIVITY.user
         token = ACTIVITY.token
 
         val listItems = arrayListOf<User>()
 
         for (member in group.members) {
+            if(user.id == member.id){
+                isAdmin = member.UserGroup.is_admin
+            }
             listItems.add(member)
         }
 
-        val adapter = ParticipantAdapter(listItems, requireContext())
+        val adapter = ParticipantAdapter(listItems, user, isAdmin, group.id, token, requireContext())
         val listView: ListView = view.findViewById(R.id.listOfParticipants)
         listView.adapter = adapter
 
@@ -63,6 +67,8 @@ class GroupFragment : BaseFragment() {
                 override fun onResponse(array: JSONArray) {
                     val dialog = BottomSheetDialog(ACTIVITY)
                     val view = layoutInflater.inflate(R.layout.dialog_add_user, null)
+                    val textView: TextView = view.findViewById(R.id.userNone)
+                    textView.visibility = View.GONE
 
                     userRes = Mapper().mapper(array)
                     for (user: User in userRes){
@@ -70,6 +76,9 @@ class GroupFragment : BaseFragment() {
                     }
                     addListItems.removeAll(listItems)
 
+                    if(addListItems.isEmpty()){
+                        textView.visibility = View.VISIBLE
+                    }
                     addAdapter = AddParticipantAdapter(addListItems, requireContext())
                     val addListView: ListView = view.findViewById(R.id.addListOfParticipants)
                     addListView.adapter = addAdapter
@@ -136,6 +145,10 @@ class GroupFragment : BaseFragment() {
             }
         }*/
         return view
+    }
+
+    fun loadListItem(){
+
     }
 
 }

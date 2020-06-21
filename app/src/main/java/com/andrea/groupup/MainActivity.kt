@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Button
 import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
+import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
+import com.google.gson.Gson
 import org.json.JSONObject
 import java.io.FileOutputStream
 
@@ -21,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener{
             val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("bunuu54", "test", object: VolleyCallback {
+            UserHttp(this).login("bunu54fze", "test", object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d("USER", "getUser - onResponse")
                     /*val fileOutputStream: FileOutputStream
@@ -31,7 +33,12 @@ class MainActivity : AppCompatActivity() {
                     }catch (e: Exception){
                         e.printStackTrace()
                     }*/
-                    intent.putExtra("User", jsonObject.toString())
+                    val gson = Gson()
+                    val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
+                    intent.putExtra("User", user)
+                    var token = jsonObject.get("token").toString()
+                    token = token.substring(token.indexOf(" ") + 1, token.length)
+                    intent.putExtra("Token", token)
                     startActivity(intent)
                 }
 
@@ -49,7 +56,12 @@ class MainActivity : AppCompatActivity() {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d("USER", "getUser - onResponse")
                     Log.d("USER", jsonObject.toString())
-                    intent.putExtra("User", jsonObject.toString())
+                    val gson = Gson()
+                    val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
+                    intent.putExtra("User", user)
+                    var token = jsonObject.get("token").toString()
+                    token = token.substring(token.indexOf(" ") + 1, token.length)
+                    intent.putExtra("Token", token)
                     startActivity(intent)
                 }
 

@@ -1,24 +1,34 @@
 package com.andrea.groupup.Adapters
 
+import android.app.PendingIntent.getActivity
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.TextView
-import com.andrea.groupup.Models.Event
+import android.widget.*
+import com.andrea.groupup.DetailsActivity
+import com.andrea.groupup.GroupActivity
+import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
+import com.android.volley.VolleyError
+import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ParticipantAdapter(items: ArrayList<User>, ctx: Context) :
+class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, IdGroup: Int, Token: String, ctx: Context) :
     ArrayAdapter<User>(ctx,
         R.layout.list_of_participants, items) {
 
+    var userConnected = user
+    var isAdmin = IsAdmin
     var arrayList = items
     var tempList = ArrayList(arrayList)
+    var token = Token
+    var idGroup = IdGroup
 
     //view holder is used to prevent findViewById calls
     private class ParticipantViewHolder {
@@ -46,6 +56,104 @@ class ParticipantAdapter(items: ArrayList<User>, ctx: Context) :
         val participant = getItem(i)
         //viewHolder.image!!.src = event!!.date
         viewHolder.name!!.text = participant.username
+
+        if(participant.UserGroup.is_admin){
+            val adminImage: ImageView = view.findViewById(R.id.isAdmin)
+            adminImage.visibility = View.VISIBLE
+        }else{
+            val adminImage: ImageView = view.findViewById(R.id.isAdmin)
+            adminImage.visibility = View.INVISIBLE
+        }
+
+        if(userConnected.id == participant.id){
+            val imageView: ImageView = view.findViewById(R.id.imageView)
+            imageView.setOnClickListener {
+                val popupMenu = PopupMenu(context, it)
+                popupMenu.setOnMenuItemClickListener { item ->
+                    when(item.itemId){
+                        R.id.leave -> {
+                            GroupHttp(context).leaveGroup(idGroup.toString(), token, object:VolleyCallback {
+                                override fun onResponse(jsonObject: JSONObject) {
+                                    Log.d("LEAVE", jsonObject.toString())
+                                }
+
+                                override fun onError(error: VolleyError) {
+                                    Log.e("LEAVE", "leave group - onError")
+                                    //Log.e("LEAVE", error.toString())
+                                    val intent = Intent(context, GroupActivity::class.java)
+                                    intent.putExtra("User", userConnected)
+                                    intent.putExtra("Token", token)
+                                    context.startActivity(intent)
+                                }
+                            })
+                            true
+                        }
+                        else -> false
+                    }
+                }
+
+                popupMenu.inflate(R.menu.menu_participant)
+
+                try {
+                    val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
+                    fieldMPopup.isAccessible = true
+                    val mPopup = fieldMPopup.get(popupMenu)
+                    mPopup.javaClass
+                        .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+                        .invoke(mPopup, true)
+                } catch (e: Exception){
+                    Log.e("Main", "Error showing menu icons.", e)
+                } finally {
+                    popupMenu.show()
+                }
+            }
+        }else{
+            if(isAdmin){
+                val imageView: ImageView = view.findViewById(R.id.imageView)
+                imageView.setOnClickListener {
+                    val popupMenu = PopupMenu(context, it)
+                    popupMenu.setOnMenuItemClickListener { item ->
+                        when(item.itemId){
+                            R.id.leave -> {
+                                GroupHttp(context).kickGroup(idGroup.toString(), participant.id.toString(), token, object:VolleyCallback {
+                                    override fun onResponse(jsonObject: JSONObject) {
+                                        Log.d("LEAVE", jsonObject.toString())
+                                    }
+
+                                    override fun onError(error: VolleyError) {
+                                        Log.e("LEAVE", "leave group - onError")
+                                        arrayList.removeAt(i)
+                                        notifyDataSetChanged()
+                                    }
+                                })
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+
+                    popupMenu.inflate(R.menu.menu_participant)
+
+
+
+                    try {
+                        val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
+                        fieldMPopup.isAccessible = true
+                        val mPopup = fieldMPopup.get(popupMenu)
+                        mPopup.javaClass
+                            .getDeclaredMethod("setForceShowIcon", Boolean::class.java)
+                            .invoke(mPopup, true)
+                    } catch (e: Exception){
+                        Log.e("Main", "Error showing menu icons.", e)
+                    } finally {
+                        popupMenu.show()
+                    }
+                }
+            }else{
+                val imageView: ImageView = view.findViewById(R.id.imageView)
+                imageView.visibility = View.INVISIBLE
+            }
+        }
 
         view.tag = viewHolder
 

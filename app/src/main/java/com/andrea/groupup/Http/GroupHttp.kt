@@ -22,4 +22,12 @@ class GroupHttp(val context: Context)  {
     fun addToGroup(idGroup: String, idUser: String, token: String, volleyCallback: VolleyCallback){
         http.postWithToken("$URL/$idGroup/user/$idUser", volleyCallback, JSONObject("{}"), token)
     }
+
+    fun leaveGroup(idGroup: String, token: String, volleyCallback: VolleyCallback){
+        http.deleteWithToken("$URL/$idGroup/leave/", volleyCallback, token)
+    }
+
+    fun kickGroup(idGroup: String, idUser: String, token: String, volleyCallback: VolleyCallback){
+        http.deleteWithToken("$URL/$idGroup/kick/$idUser", volleyCallback, token)
+    }
 }

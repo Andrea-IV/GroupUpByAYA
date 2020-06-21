@@ -38,12 +38,9 @@ class GroupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_group)
 
-        val userString:String = intent.getStringExtra("User")
+        user = intent.getSerializableExtra("User") as User
+        token = intent.getStringExtra("Token")
 
-        val gson:Gson = Gson()
-        user = gson.fromJson(userString, User::class.java)
-        val tokenString: String = JSONObject(userString).get("token").toString()
-        token = tokenString.substring(tokenString.indexOf(" ") + 1, tokenString.length)
         context = this
 
         GroupHttp(this)
@@ -65,6 +62,7 @@ class GroupActivity : AppCompatActivity() {
                                              position: Int, id: Long) {
                         val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
                         intent.putExtra("Group", listItems[position])
+                        intent.putExtra("User", user)
                         intent.putExtra("Token", token)
                         startActivity(intent)
                     }

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.andrea.groupup.Adapters.PagerViewAdapter
 import com.andrea.groupup.Models.Group
+import com.andrea.groupup.Models.User
 import com.google.gson.Gson
 
 class DetailsActivity : AppCompatActivity(){
@@ -21,6 +22,7 @@ class DetailsActivity : AppCompatActivity(){
     private lateinit var mPagerAdapter: PagerViewAdapter
 
     lateinit var group: Group
+    lateinit var user: User
     lateinit var token: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +30,7 @@ class DetailsActivity : AppCompatActivity(){
         setContentView(R.layout.activity_details)
 
         group = intent.getSerializableExtra("Group") as Group
+        user = intent.getSerializableExtra("User") as User
         token = intent.getStringExtra("Token")
 
         mViewPager = findViewById(R.id.mViewPager)

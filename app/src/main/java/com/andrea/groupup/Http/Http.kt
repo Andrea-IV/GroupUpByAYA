@@ -78,4 +78,19 @@ class Http {
 
         queue.add(request)
     }
+
+    fun deleteWithToken(url: String, callback: VolleyCallback, tokenCode: String): Unit {
+        val request = object : JsonObjectRequest(Request.Method.DELETE, url, null,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers.put("Content-Type", "application/json")
+                headers.put("Authorization", "Bearer $tokenCode")
+                return headers
+            }
+        }
+
+        queue.add(request)
+    }
 }
