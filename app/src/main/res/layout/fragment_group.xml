@@ -29,7 +29,7 @@
                     android:layout_height="25dp"
                     android:background="@drawable/dot_selected"
                     android:src="@drawable/ic_add_white"
-                    android:layout_marginStart="5dp"
+                    android:layout_marginStart="10dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.88"

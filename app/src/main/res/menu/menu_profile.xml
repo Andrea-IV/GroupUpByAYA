@@ -5,12 +5,12 @@
         android:title="@string/menu_profile"
         android:icon="@drawable/ic_person_primary"/>
     <item
+            android:id="@+id/friend"
+            android:title="@string/menu_friend"
+            android:icon="@drawable/ic_group_blue"/>
+    <item
         android:id="@+id/notification"
         android:title="@string/menu_notification"
         android:icon="@drawable/ic_notification_primary"/>
-    <item
-        android:id="@+id/friend"
-        android:title="@string/menu_friend"
-        android:icon="@drawable/ic_group_blue"/>
 
 </menu>

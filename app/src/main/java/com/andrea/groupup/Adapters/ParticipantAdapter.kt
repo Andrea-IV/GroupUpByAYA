@@ -1,6 +1,5 @@
 package com.andrea.groupup.Adapters
 
-import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -8,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import com.andrea.groupup.DetailsActivity
 import com.andrea.groupup.GroupActivity
 import com.andrea.groupup.Http.GroupHttp
 import com.andrea.groupup.Http.VolleyCallback

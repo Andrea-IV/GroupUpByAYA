@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.*
+import androidx.fragment.app.DialogFragment
 import com.andrea.groupup.Adapters.AddParticipantAdapter
 import com.andrea.groupup.Adapters.ParticipantAdapter
 import com.andrea.groupup.Http.GroupHttp
@@ -43,6 +44,7 @@ class GroupFragment : BaseFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_group, container, false)
+
         group = ACTIVITY.group
         user = ACTIVITY.user
         token = ACTIVITY.token
@@ -65,10 +67,12 @@ class GroupFragment : BaseFragment() {
         addUser.setOnClickListener{
             UserHttp(ACTIVITY).getAll(object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
-                    val dialog = BottomSheetDialog(ACTIVITY)
+                    val dialog = BottomSheetDialog(ACTIVITY, R.style.DialogStyle)
+
                     val view = layoutInflater.inflate(R.layout.dialog_add_user, null)
                     val textView: TextView = view.findViewById(R.id.userNone)
                     textView.visibility = View.GONE
+                    addListItems.clear()
 
                     userRes = Mapper().mapper(array)
                     for (user: User in userRes){

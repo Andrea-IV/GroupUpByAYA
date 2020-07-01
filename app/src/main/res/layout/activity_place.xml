@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_constraint"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/basicBackground"
@@ -20,7 +21,6 @@
                 android:id="@+id/imageView2"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
-                android:src="@drawable/place_example_2"
                 android:background="@android:color/black"
                 android:foreground="@drawable/photo_frame_details"
                 app:layout_constraintStart_toStartOf="parent"
@@ -47,6 +47,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
+                android:id="@+id/previous"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_chevron_left_primary"
@@ -66,6 +67,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
+                android:id="@+id/next"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_chevron_right_primary"
@@ -75,15 +77,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/more"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="10dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
+                android:id="@+id/add"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/dot_selected"
@@ -109,7 +103,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/descriptionTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="30dp"
@@ -121,6 +115,7 @@
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
     <TextView
+            android:id="@+id/tagsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
@@ -128,29 +123,55 @@
             android:text="@string/tags"
             android:textColor="@color/shadedText"
             android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@+id/textView2"
+            app:layout_constraintStart_toEndOf="@+id/descriptionTitle"
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
     <ImageView
-            android:id="@+id/imageView5"
+            android:id="@+id/selected"
             android:layout_width="5dp"
             android:layout_height="5dp"
             android:src="@drawable/dot_selected"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.18"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+            app:layout_constraintTop_toBottomOf="@+id/descriptionTitle" />
 
-    <TextView
-            android:id="@+id/description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/shadedText"
+    <ScrollView
+            android:id="@+id/SCROLLER_ID"
+            android:layout_width="fill_parent"
+            android:layout_height="250dp"
+            android:layout_marginTop="40dp"
             android:layout_marginStart="30dp"
             android:layout_marginEnd="20dp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/imageView5"
-            tools:layout_editor_absoluteX="20dp" />
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/selected">
+
+        <TextView
+                android:id="@+id/description"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/shadedText"
+                android:textSize="16sp"/>
+    </ScrollView>
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listOfTags"
+            android:layout_height="250dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="20dp"
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/selected"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout2"
@@ -176,9 +197,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
-                android:text="20 km"
                 android:textColor="@android:color/black"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/imageView4"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -198,9 +218,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
-                android:text="4.5"
                 android:textColor="@android:color/black"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/imageView3"
                 app:layout_constraintTop_toTopOf="parent" />
