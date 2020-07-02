@@ -12,8 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.Toast
+import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -38,6 +37,19 @@ import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_chat_map.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.scaledrone.lib.Listener
+import com.scaledrone.lib.Room
+import com.scaledrone.lib.RoomListener
+import com.scaledrone.lib.Scaledrone
+import androidx.appcompat.app.AppCompatActivity
+import com.andrea.groupup.Adapters.MessageAdapter
+import com.andrea.groupup.Models.MemberData
+import com.andrea.groupup.Models.Message
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * A simple [Fragment] subclass.
@@ -45,7 +57,7 @@ import org.json.JSONArray
 
 private const val TAG = "MAP"
 
-class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickListener, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
+class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonClickListener, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener {
 
     private var permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
@@ -59,20 +71,68 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
     private var markers = ArrayList<Marker>()
     private var localPlaces = HashMap<Int, LocalPlace>()
 
+    //chat variables
+
+    private var chat:LinearLayout? = null;
+    private var channelID: String? = "xFOd3Tqsb25TmL2e"
+    private val roomName = "observable-room"
+    private var editText: EditText? = null
+    private var scaledrone: Scaledrone? = null
+    private var messageAdapter: MessageAdapter? = null
+    private var messagesView: ListView? = null
+    private var onMap: Boolean = true
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+     ): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
-        onMapChatButton = view.onMapChatButton;
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        onMapChatButton = view.onMapChatButton
+
+        chat = view.findViewById(R.id.chat) as LinearLayout
+        editText = view.findViewById(R.id.editText) as EditText
+        messageAdapter = MessageAdapter(ACTIVITY)
+        messagesView = view.findViewById(R.id.messages_view) as ListView
+        messagesView!!.adapter = messageAdapter
+        val data = MemberData(getRandomName(), getRandomColor())
+        scaledrone = Scaledrone(channelID, data)
+        scaledrone!!.connect(object : Listener {
+            override fun onOpen() {
+                println("Scaledrone connection open")
+                scaledrone!!.subscribe(roomName, this@ChatMapFragment)
+            }
+
+            override fun onOpenFailure(ex: java.lang.Exception) {
+                System.err.println(ex)
+            }
+
+            override fun onFailure(ex: java.lang.Exception) {
+                System.err.println(ex)
+            }
+
+            override fun onClosed(reason: String) {
+                System.err.println(reason)
+            }
+        })
 
         onMapChatButton.setOnClickListener { view ->
-            val intent = Intent(requireContext(), ChatActivity::class.java)
-            startActivity(intent);
+            /*val intent = Intent(requireContext(), ChatActivity::class.java)
+            startActivity(intent);*/
+            //opacity/background brinfront constraint affichebarretexte booleen visibiltytext
+            if(onMap)
+            {
+                //bringChat()
+                onMap = false
+            }
+            else
+            {
+                //bringMap()
+                onMap = true
+            }
         }
 
         return view
@@ -260,5 +320,205 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
         }
 
         return true
+    }
+
+    //CHAT FUNCTIONS
+    //------------------------
+
+    fun sendMessage(view: View?) {
+        val message = editText!!.text.toString()
+        if (message.length > 0) {
+            scaledrone!!.publish(roomName, message)
+            editText!!.text.clear()
+        }
+    }
+
+    override fun onOpen(room: Room?) {
+        println("Conneted to room")
+    }
+
+    override fun onOpenFailure(room: Room?, ex: Exception?) {
+        System.err.println(ex)
+    }
+
+    override fun onMessage(room: Room?, receivedMessage: com.scaledrone.lib.Message) {
+        val mapper = ObjectMapper()
+        try {
+            val data = mapper.treeToValue(
+                receivedMessage.member.clientData,
+                MemberData::class.java
+            )
+            val belongsToCurrentUser =
+                receivedMessage.clientID == scaledrone!!.clientID
+            val message = Message(
+                receivedMessage.data.asText(),
+                data,
+                belongsToCurrentUser
+            )
+            //runOnUiThread {
+                messageAdapter!!.add(message)
+                messagesView!!.setSelection(messagesView!!.count - 1)
+            //}
+        } catch (e: JsonProcessingException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun getRandomName(): String? {
+        val adjs = arrayOf(
+            "autumn",
+            "hidden",
+            "bitter",
+            "misty",
+            "silent",
+            "empty",
+            "dry",
+            "dark",
+            "summer",
+            "icy",
+            "delicate",
+            "quiet",
+            "white",
+            "cool",
+            "spring",
+            "winter",
+            "patient",
+            "twilight",
+            "dawn",
+            "crimson",
+            "wispy",
+            "weathered",
+            "blue",
+            "billowing",
+            "broken",
+            "cold",
+            "damp",
+            "falling",
+            "frosty",
+            "green",
+            "long",
+            "late",
+            "lingering",
+            "bold",
+            "little",
+            "morning",
+            "muddy",
+            "old",
+            "red",
+            "rough",
+            "still",
+            "small",
+            "sparkling",
+            "throbbing",
+            "shy",
+            "wandering",
+            "withered",
+            "wild",
+            "black",
+            "young",
+            "holy",
+            "solitary",
+            "fragrant",
+            "aged",
+            "snowy",
+            "proud",
+            "floral",
+            "restless",
+            "divine",
+            "polished",
+            "ancient",
+            "purple",
+            "lively",
+            "nameless"
+        )
+        val nouns = arrayOf(
+            "waterfall",
+            "river",
+            "breeze",
+            "moon",
+            "rain",
+            "wind",
+            "sea",
+            "morning",
+            "snow",
+            "lake",
+            "sunset",
+            "pine",
+            "shadow",
+            "leaf",
+            "dawn",
+            "glitter",
+            "forest",
+            "hill",
+            "cloud",
+            "meadow",
+            "sun",
+            "glade",
+            "bird",
+            "brook",
+            "butterfly",
+            "bush",
+            "dew",
+            "dust",
+            "field",
+            "fire",
+            "flower",
+            "firefly",
+            "feather",
+            "grass",
+            "haze",
+            "mountain",
+            "night",
+            "pond",
+            "darkness",
+            "snowflake",
+            "silence",
+            "sound",
+            "sky",
+            "shape",
+            "surf",
+            "thunder",
+            "violet",
+            "water",
+            "wildflower",
+            "wave",
+            "water",
+            "resonance",
+            "sun",
+            "wood",
+            "dream",
+            "cherry",
+            "tree",
+            "fog",
+            "frost",
+            "voice",
+            "paper",
+            "frog",
+            "smoke",
+            "star"
+        )
+        return adjs[Math.floor(Math.random() * adjs.size).toInt()] +
+                "_" +
+                nouns[Math.floor(Math.random() * nouns.size).toInt()]
+    }
+
+    private fun getRandomColor(): String? {
+        val r = Random()
+        val sb = StringBuffer("#")
+        while (sb.length < 7) {
+            sb.append(Integer.toHexString(r.nextInt()))
+        }
+        return sb.toString().substring(0, 7)
+    }
+
+    //CHAT-MAP SWITCH FUNCTIONS
+    //------------------------
+
+    private fun bringChat(){
+
+    }
+
+    private fun bringMap(){
+
     }
 }

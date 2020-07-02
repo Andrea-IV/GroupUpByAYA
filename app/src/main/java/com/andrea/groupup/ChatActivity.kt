@@ -24,8 +24,7 @@ class ChatActivity : AppCompatActivity(), RoomListener{
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
     }*/
-    // replace this with a real channelID from Scaledrone dashboard
-    private var channelID: String? = "CHANNEL_ID_FROM_YOUR_SCALEDRONE_DASHBOARD"
+    private var channelID: String? = "xFOd3Tqsb25TmL2e"
     private val roomName = "observable-room"
     private var editText: EditText? = null
     private var scaledrone: Scaledrone? = null
