@@ -2,7 +2,6 @@ package com.andrea.groupup.Fragments
 
 import android.Manifest
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -13,20 +12,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.andrea.groupup.DetailsActivity
+import com.andrea.groupup.*
 import com.andrea.groupup.Http.LocalPlaceHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.LocalPlace
-import com.andrea.groupup.PlaceActivity
-import com.andrea.groupup.R
 import com.android.volley.VolleyError
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.Klaxon
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -39,6 +35,8 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.gson.Gson
+import kotlinx.android.synthetic.main.fragment_chat_map.*
+import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
 
 /**
@@ -53,6 +51,7 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mMap: GoogleMap
+    private lateinit var onMapChatButton: ImageButton;
     private var mLocationPermissionGranted = false;
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -66,9 +65,15 @@ class ChatMapFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickL
     ): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
+        onMapChatButton = view.onMapChatButton;
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        onMapChatButton.setOnClickListener { view ->
+            val intent = Intent(requireContext(), ChatActivity::class.java)
+            startActivity(intent);
+        }
 
         return view
     }
