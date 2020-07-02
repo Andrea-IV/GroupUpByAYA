@@ -9,10 +9,13 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
+import com.andrea.groupup.Adapters.InvitesAdapter
+import com.andrea.groupup.Http.FriendHttp
 import com.andrea.groupup.Http.GroupHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Http.VolleyCallbackArray
+import com.andrea.groupup.Models.FriendRequest
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
@@ -43,8 +46,14 @@ class GroupActivity : AppCompatActivity() {
 
         context = this
 
-        GroupHttp(this)
-            .getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
+        groupViewInit()
+        searchInit()
+        addGroupInit()
+        menuInit()
+    }
+
+    private fun groupViewInit(){
+        GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
                 val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
@@ -69,14 +78,14 @@ class GroupActivity : AppCompatActivity() {
                 }
             }
 
-
             override fun onError(error: VolleyError) {
                 Log.e("USER", "login - onError")
                 Log.e("USER", error.toString())
             }
         })
+    }
 
-        // SEARCH INIT
+    private fun searchInit(){
         searchView = findViewById(R.id.searchBar)
         searchView.queryHint = getString(R.string.searchHint)
         searchView.imeOptions = EditorInfo.IME_ACTION_DONE
@@ -91,8 +100,9 @@ class GroupActivity : AppCompatActivity() {
                 return false
             }
         })
+    }
 
-        //ADD GROUP INIT
+    private fun addGroupInit(){
         val addGroup: ImageView = findViewById(R.id.addGroup)
 
         addGroup.setOnClickListener{
@@ -129,8 +139,9 @@ class GroupActivity : AppCompatActivity() {
 
             dialog.show()
         }
+    }
 
-        // MENU INIT
+    private fun menuInit(){
         val menu: ImageView = findViewById(R.id.menu)
 
         menu.setOnClickListener {
@@ -138,34 +149,15 @@ class GroupActivity : AppCompatActivity() {
             popupMenu.setOnMenuItemClickListener { item ->
                 when(item.itemId){
                     R.id.profile -> {
-                        val dialog = BottomSheetDialog(this)
-                        val view = layoutInflater.inflate(R.layout.dialog_profile, null)
-                        dialog.setContentView(view)
-
-                        val username: EditText = view.findViewById(R.id.username)
-                        username.hint = user.username
-                        val firstName: EditText = view.findViewById(R.id.firstname_value)
-                        firstName.hint = user.firstname
-                        val lastName: EditText = view.findViewById(R.id.lastname_value)
-                        lastName.hint = user.lastname
-                        val email: EditText = view.findViewById(R.id.email_value)
-                        email.hint = user.email
-                        val password: EditText = view.findViewById(R.id.password_value)
-                        password.hint = this.resources.getString(R.string.old_password)
-                        val newPassword: EditText = view.findViewById(R.id.new_password_value)
-                        newPassword.hint = this.resources.getString(R.string.new_password)
-                        val confirmPassword: EditText = view.findViewById(R.id.confirm_password_value)
-                        confirmPassword.hint = this.resources.getString(R.string.confirm_password)
-
-                        dialog.show()
+                        profileDialogInit(this)
                         true
                     }
                     R.id.notification -> {
-                        Toast.makeText(this, "Notification", Toast.LENGTH_LONG).show()
+                        invitesDialogInit(this)
                         true
                     }
                     R.id.friend -> {
-                        Toast.makeText(this, "Friend", Toast.LENGTH_LONG).show()
+                        goToFriends()
                         true
                     }
                     else -> false
@@ -187,5 +179,69 @@ class GroupActivity : AppCompatActivity() {
                 popupMenu.show()
             }
         }
+    }
+
+    private fun invitesDialogInit(context: Context){
+        val dialog = BottomSheetDialog(context)
+        val view = layoutInflater.inflate(R.layout.dialog_friend_invites, null)
+
+        FriendHttp(this).getFriendRequests(user.id.toString(), object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                val requestRes = Mapper().mapper<JSONArray, List<FriendRequest>>(array)
+                val requestItems: ArrayList<User> = arrayListOf()
+                val noneTextView: TextView = view.findViewById(R.id.invitesNone)
+
+                for (request: FriendRequest in requestRes){
+                    requestItems.add(request.User)
+                }
+
+                if(!requestItems.isEmpty()){
+                   noneTextView.visibility = View.GONE
+                }
+
+                val requestAdapter = InvitesAdapter(requestItems, user, token, noneTextView, context)
+
+                val listOfInvites: ListView = view.findViewById(R.id.listOfFriends)
+                listOfInvites.adapter = requestAdapter
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("INVITES", "Invites - onError")
+                Log.e("INVITES", error.toString())
+            }
+        })
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private fun profileDialogInit(context: Context){
+        val dialog = BottomSheetDialog(context)
+        val view = layoutInflater.inflate(R.layout.dialog_profile, null)
+        dialog.setContentView(view)
+
+        val username: EditText = view.findViewById(R.id.username)
+        username.hint = user.username
+        val firstName: EditText = view.findViewById(R.id.firstname_value)
+        firstName.hint = user.firstname
+        val lastName: EditText = view.findViewById(R.id.lastname_value)
+        lastName.hint = user.lastname
+        val email: EditText = view.findViewById(R.id.email_value)
+        email.hint = user.email
+        val password: EditText = view.findViewById(R.id.password_value)
+        password.hint = this.resources.getString(R.string.old_password)
+        val newPassword: EditText = view.findViewById(R.id.new_password_value)
+        newPassword.hint = this.resources.getString(R.string.new_password)
+        val confirmPassword: EditText = view.findViewById(R.id.confirm_password_value)
+        confirmPassword.hint = this.resources.getString(R.string.confirm_password)
+
+        dialog.show()
+    }
+
+    private fun goToFriends(){
+        val intent = Intent(this@GroupActivity, FriendsActivity::class.java)
+        intent.putExtra("User", user)
+        intent.putExtra("Token", token)
+        startActivity(intent)
     }
 }

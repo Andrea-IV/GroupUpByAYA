@@ -8,6 +8,9 @@
     <string name="schedule_title">Schedule</string>
     <string name="user_title">Grouped Up</string>
     <string name="settings_title">Settings</string>
+    <string name="friends_title">Friends</string>
+    <string name="addFriend_title">Add Friend</string>
+    <string name="friends_invites_title">Friends Invites</string>
     <string name="description">Description</string>
     <string name="tags">Tags</string>
     <string name="toMap">Place on the map</string>
@@ -17,8 +20,8 @@
     <string name="errorEmpty">Field is empty</string>
     <string name="create">Create</string>
     <string name="menu_profile">Edit Profile</string>
-    <string name="menu_notification">Notifications</string>
-    <string name="menu_friend">Friends</string>
+    <string name="menu_notification">Friends Invites</string>
+    <string name="menu_friend">Friends List</string>
     <string name="username">Username</string>
     <string name="first_name">First name</string>
     <string name="first_name_value">First name value</string>
@@ -32,6 +35,18 @@
     <string name="addUser_title">Add participant</string>
     <string name="addUser_none">All your friends are participants of this group</string>
     <string name="leave_participant">Leave</string>
+    <string name="searchUsername">Enter new friends username</string>
+    <string name="addFriend_button">Add Friend</string>
+    <string name="userNotExist">Username doesn\'t exist</string>
+    <string name="invitationStillProcessing">User already invited, wait for their response !</string>
+    <string name="invites_none">There are no friends invites for you\..\.</string>
+    <string name="friends_none">Oh, you have no friends \..\. That\'s awkward \..\.</string>
+    <string name="leave_friendship">No more friends</string>
+    <string name="add_photo">Add a photo</string>
+    <string name="add_tag">Add a tag</string>
+    <string name="menu_short">\> 2 km</string>
+    <string name="menu_mid">\> 10 km</string>
+    <string name="menu_long">Show All</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

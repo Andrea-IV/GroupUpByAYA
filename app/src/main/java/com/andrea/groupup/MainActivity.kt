@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener{
             val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("bunu54fze", "test", object: VolleyCallback {
+            UserHttp(this).login("Huskky", "test", object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d("USER", "getUser - onResponse")
                     /*val fileOutputStream: FileOutputStream

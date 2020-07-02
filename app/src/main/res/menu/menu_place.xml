@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+            android:id="@+id/photo"
+            android:title="@string/add_photo"
+            android:icon="@drawable/ic_add_a_photo_primary"/>
+    <item
+            android:id="@+id/tag"
+            android:title="@string/add_tag"
+            android:icon="@drawable/ic_tag_primary"/>
+</menu>
