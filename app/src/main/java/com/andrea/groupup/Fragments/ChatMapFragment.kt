@@ -1,7 +1,6 @@
 package com.andrea.groupup.Fragments
 
 import android.Manifest
-import android.app.ActivityOptions
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -16,10 +15,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import com.andrea.groupup.Adapters.MessageAdapter
 import com.andrea.groupup.Http.LocalPlaceHttp
@@ -28,6 +25,7 @@ import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.LocalPlace
 import com.andrea.groupup.Models.MemberData
 import com.andrea.groupup.Models.Message
+import com.andrea.groupup.Models.User
 import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
@@ -45,12 +43,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.gson.Gson
-import com.scaledrone.lib.Listener
-import com.scaledrone.lib.Room
-import com.scaledrone.lib.RoomListener
-import com.scaledrone.lib.Scaledrone
-import kotlinx.android.synthetic.main.activity_place.*
-import kotlinx.android.synthetic.main.fragment_chat_map.*
+import com.scaledrone.lib.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
 import java.util.*
@@ -69,7 +62,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mMap: GoogleMap
-    private lateinit var onMapChatButton: ImageButton;
+
     private var mLocationPermissionGranted = false;
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -78,17 +71,21 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
     private var localPlaces = HashMap<Int, LocalPlace>()
 
     //chat variables
+    private lateinit var onMapChatButton: ImageButton;
+    private lateinit var sendMessage: ImageButton;
 
     private var chat:LinearLayout? = null;
     private var chatTextLayout:LinearLayout? = null;
-    private var channelID: String? = "xFOd3Tqsb25TmL2e"
-    private val roomName = "observable-room"
+    private var channelID: String? = null
+    private var roomName: String? = null
     private var editText: EditText? = null
     private var scaledrone: Scaledrone? = null
     private var messageAdapter: MessageAdapter? = null
     private var messagesView: ListView? = null
     private var onMap: Boolean = true
     private var chatlayoutparams: ViewGroup.LayoutParams? = null
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,6 +100,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
         chat = view.findViewById(R.id.chat) as LinearLayout
         chatlayoutparams = chat?.layoutParams
         onMapChatButton = view.onMapChatButton
+        sendMessage = view.sendMessage
 
 
         chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
@@ -110,25 +108,30 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
         messageAdapter = MessageAdapter(ACTIVITY)
         messagesView = view.findViewById(R.id.messages_view) as ListView
         messagesView!!.adapter = messageAdapter
-        val data = MemberData(getRandomName(), getRandomColor())
+        val data = MemberData(ACTIVITY.user.username, getRandomColor())
+        channelID = getString(R.string.chat_channel)
+        roomName = "observable-"+ACTIVITY.group.name+"-"+ACTIVITY.group.id
         scaledrone = Scaledrone(channelID, data)
         scaledrone!!.connect(object : Listener {
             override fun onOpen() {
                 println("Scaledrone connection open")
-                scaledrone!!.subscribe(roomName, this@ChatMapFragment)
+                scaledrone!!.subscribe(roomName, this@ChatMapFragment, SubscribeOptions(100)).listenToHistoryEvents { room, message ->
+                    println("sooooos")
+                }
             }
 
             override fun onOpenFailure(ex: java.lang.Exception) {
-                System.err.println(ex)
+                System.err.println("sauce"+ex)
             }
 
             override fun onFailure(ex: java.lang.Exception) {
-                System.err.println(ex)
+                System.err.println("sauce"+ex)
             }
 
             override fun onClosed(reason: String) {
                 System.err.println(reason)
             }
+
         })
 
         onMapChatButton.setOnClickListener { view ->
@@ -141,6 +144,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
             {
                 bringMap()
             }
+        }
+        sendMessage.setOnClickListener { view ->
+            sendMessage(view)
         }
 
         return view
@@ -363,152 +369,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
                 data,
                 belongsToCurrentUser
             )
-            //runOnUiThread {
+            ACTIVITY.runOnUiThread {
                 messageAdapter!!.add(message)
                 messagesView!!.setSelection(messagesView!!.count - 1)
-            //}
+            }
         } catch (e: JsonProcessingException) {
             e.printStackTrace()
         }
     }
 
-    private fun getRandomName(): String? {
-        val adjs = arrayOf(
-            "autumn",
-            "hidden",
-            "bitter",
-            "misty",
-            "silent",
-            "empty",
-            "dry",
-            "dark",
-            "summer",
-            "icy",
-            "delicate",
-            "quiet",
-            "white",
-            "cool",
-            "spring",
-            "winter",
-            "patient",
-            "twilight",
-            "dawn",
-            "crimson",
-            "wispy",
-            "weathered",
-            "blue",
-            "billowing",
-            "broken",
-            "cold",
-            "damp",
-            "falling",
-            "frosty",
-            "green",
-            "long",
-            "late",
-            "lingering",
-            "bold",
-            "little",
-            "morning",
-            "muddy",
-            "old",
-            "red",
-            "rough",
-            "still",
-            "small",
-            "sparkling",
-            "throbbing",
-            "shy",
-            "wandering",
-            "withered",
-            "wild",
-            "black",
-            "young",
-            "holy",
-            "solitary",
-            "fragrant",
-            "aged",
-            "snowy",
-            "proud",
-            "floral",
-            "restless",
-            "divine",
-            "polished",
-            "ancient",
-            "purple",
-            "lively",
-            "nameless"
-        )
-        val nouns = arrayOf(
-            "waterfall",
-            "river",
-            "breeze",
-            "moon",
-            "rain",
-            "wind",
-            "sea",
-            "morning",
-            "snow",
-            "lake",
-            "sunset",
-            "pine",
-            "shadow",
-            "leaf",
-            "dawn",
-            "glitter",
-            "forest",
-            "hill",
-            "cloud",
-            "meadow",
-            "sun",
-            "glade",
-            "bird",
-            "brook",
-            "butterfly",
-            "bush",
-            "dew",
-            "dust",
-            "field",
-            "fire",
-            "flower",
-            "firefly",
-            "feather",
-            "grass",
-            "haze",
-            "mountain",
-            "night",
-            "pond",
-            "darkness",
-            "snowflake",
-            "silence",
-            "sound",
-            "sky",
-            "shape",
-            "surf",
-            "thunder",
-            "violet",
-            "water",
-            "wildflower",
-            "wave",
-            "water",
-            "resonance",
-            "sun",
-            "wood",
-            "dream",
-            "cherry",
-            "tree",
-            "fog",
-            "frost",
-            "voice",
-            "paper",
-            "frog",
-            "smoke",
-            "star"
-        )
-        return adjs[Math.floor(Math.random() * adjs.size).toInt()] +
-                "_" +
-                nouns[Math.floor(Math.random() * nouns.size).toInt()]
-    }
 
     private fun getRandomColor(): String? {
         val r = Random()
