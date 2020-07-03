@@ -39,6 +39,7 @@
             android:divider="#fff" />
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/chatTextLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#fff"
@@ -76,6 +77,7 @@
         android:layout_height="150dp"
         android:orientation="horizontal"
         android:layout_gravity="right"
+        android:translationZ="1dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -83,7 +85,7 @@
             android:id="@+id/onMapChatButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FFFFFFFF"/>
+            android:background="#00FFFFFF"/>
 
     </RelativeLayout>
 

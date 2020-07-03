@@ -1,11 +1,13 @@
 package com.andrea.groupup.Fragments
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
@@ -13,15 +15,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
-import com.andrea.groupup.*
+import com.andrea.groupup.Adapters.MessageAdapter
 import com.andrea.groupup.Http.LocalPlaceHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.LocalPlace
+import com.andrea.groupup.Models.MemberData
+import com.andrea.groupup.Models.Message
+import com.andrea.groupup.PlaceActivity
+import com.andrea.groupup.R
 import com.android.volley.VolleyError
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -34,19 +45,14 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.gson.Gson
-import kotlinx.android.synthetic.main.fragment_chat_map.*
-import kotlinx.android.synthetic.main.fragment_chat_map.view.*
-import org.json.JSONArray
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.scaledrone.lib.Listener
 import com.scaledrone.lib.Room
 import com.scaledrone.lib.RoomListener
 import com.scaledrone.lib.Scaledrone
-import androidx.appcompat.app.AppCompatActivity
-import com.andrea.groupup.Adapters.MessageAdapter
-import com.andrea.groupup.Models.MemberData
-import com.andrea.groupup.Models.Message
+import kotlinx.android.synthetic.main.activity_place.*
+import kotlinx.android.synthetic.main.fragment_chat_map.*
+import kotlinx.android.synthetic.main.fragment_chat_map.view.*
+import org.json.JSONArray
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -74,6 +80,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
     //chat variables
 
     private var chat:LinearLayout? = null;
+    private var chatTextLayout:LinearLayout? = null;
     private var channelID: String? = "xFOd3Tqsb25TmL2e"
     private val roomName = "observable-room"
     private var editText: EditText? = null
@@ -81,6 +88,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
     private var messageAdapter: MessageAdapter? = null
     private var messagesView: ListView? = null
     private var onMap: Boolean = true
+    private var chatlayoutparams: ViewGroup.LayoutParams? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -91,9 +99,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        var maplayoutparams = mapFragment.view?.layoutParams
+        chat = view.findViewById(R.id.chat) as LinearLayout
+        chatlayoutparams = chat?.layoutParams
         onMapChatButton = view.onMapChatButton
 
-        chat = view.findViewById(R.id.chat) as LinearLayout
+
+        chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
         editText = view.findViewById(R.id.editText) as EditText
         messageAdapter = MessageAdapter(ACTIVITY)
         messagesView = view.findViewById(R.id.messages_view) as ListView
@@ -120,18 +132,14 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
         })
 
         onMapChatButton.setOnClickListener { view ->
-            /*val intent = Intent(requireContext(), ChatActivity::class.java)
-            startActivity(intent);*/
             //opacity/background brinfront constraint affichebarretexte booleen visibiltytext
             if(onMap)
             {
-                //bringChat()
-                onMap = false
+                bringChat()
             }
             else
             {
-                //bringMap()
-                onMap = true
+                bringMap()
             }
         }
 
@@ -515,10 +523,21 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, OnMyLocationButtonCl
     //------------------------
 
     private fun bringChat(){
-
+        chat?.layoutParams =  ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+        chat?.setBackgroundColor(Color.parseColor("#ffffffff"))
+        chatTextLayout?.setVisibility(View.VISIBLE)
+        mapFragment.view?.layoutParams = chatlayoutparams
+        mapFragment.view?.bringToFront()
+        onMap = false
     }
 
     private fun bringMap(){
-
+        mapFragment.view?.layoutParams =  ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+        mapFragment.view?.setBackgroundColor(Color.parseColor("#ffffffff"))
+        chat?.setBackgroundColor(Color.parseColor("#90FFFFFF"))
+        chatTextLayout?.setVisibility(View.GONE)
+        chat?.layoutParams = chatlayoutparams
+        chat?.bringToFront()
+        onMap = true
     }
 }
