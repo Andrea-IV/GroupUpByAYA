@@ -19,10 +19,6 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".Main2Activity"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
             android:name=".CreateMeetingPointActivity"
             android:label="@string/title_activity_create_meeting_point"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -63,6 +59,7 @@
         <activity
             android:name=".FriendsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ChatActivity"></activity>
     </application>
 
 </manifest>
