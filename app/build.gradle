@@ -9,6 +9,7 @@ android {
     defaultConfig {
         applicationId "com.andrea.groupup"
         minSdkVersion 19
+        multiDexEnabled true
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -21,9 +22,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+// To inline the bytecode built with JVM target 1.8 into
+// bytecode that is being built with JVM target 1.6. (e.g. navArgs)
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
@@ -40,6 +48,8 @@ dependencies {
     implementation 'com.android.volley:volley:1.1.1'
     implementation 'com.beust:klaxon:5.0.1'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.2.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.2.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'

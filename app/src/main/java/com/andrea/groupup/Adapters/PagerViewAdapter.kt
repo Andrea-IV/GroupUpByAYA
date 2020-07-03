@@ -5,8 +5,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.andrea.groupup.Fragments.*
 
-internal class PagerViewAdapter (fm:FragmentManager?) : FragmentPagerAdapter(fm){
-    override fun getItem(position: Int): Fragment? {
+internal class PagerViewAdapter (fm:FragmentManager?) : FragmentPagerAdapter(fm!!){
+    override fun getItem(position: Int): Fragment {
         return when (position){
             0 -> {
                 GroupFragment()
