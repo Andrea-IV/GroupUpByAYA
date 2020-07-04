@@ -180,7 +180,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             }
         }
         sendMessage.setOnClickListener { view ->
-            sendMessage(view)
+            sendMessage()
         }
 
         mapHideButton.setOnClickListener{view ->
@@ -520,7 +520,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     //CHAT FUNCTIONS
     //------------------------
 
-    fun sendMessage(view: View?) {
+    fun sendMessage() {
         val message = Message(
             editText!!.text.toString(),
             data,
@@ -529,6 +529,17 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         if (message.text.length > 0) {
             scaledrone!!.publish(roomName, message)
             editText!!.text.clear()
+        }
+    }
+
+    public fun sendApplicationMessage(message: String) {
+        val message = Message(
+            message,
+            data,
+            true
+        )
+        if (message.text.length > 0) {
+            scaledrone!!.publish(roomName, message)
         }
     }
 
