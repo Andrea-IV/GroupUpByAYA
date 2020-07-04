@@ -100,19 +100,23 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     //chat variables
     private lateinit var onMapChatButton: ImageButton;
     private lateinit var sendMessage: ImageButton;
+    private lateinit var mapHideButton: ImageButton;
+
 
     private var chat:LinearLayout? = null;
     private var chatTextLayout:LinearLayout? = null;
+    private var relativeChatLayout:RelativeLayout? = null;
     private var channelID: String? = null
     private var roomName: String? = null
     private var editText: EditText? = null
     private var scaledrone: Scaledrone? = null
     private var messageAdapter: MessageAdapter? = null
     private var messagesView: ListView? = null
-    private var onMap: Boolean = true
     private var chatlayoutparams: ViewGroup.LayoutParams? = null
-
-
+    private var maplayoutparams: ViewGroup.LayoutParams? = null
+    private var data : MemberData? = null
+    private var onMap: Boolean = true
+    private var onLittleMap: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -123,27 +127,30 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        var maplayoutparams = mapFragment.view?.layoutParams
+        maplayoutparams = mapFragment.view?.layoutParams
         chat = view.findViewById(R.id.chat) as LinearLayout
         chatlayoutparams = chat?.layoutParams
         onMapChatButton = view.onMapChatButton
         sendMessage = view.sendMessage
+        mapHideButton = view.mapHideButton
 
 
         chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
+        relativeChatLayout = view.findViewById(R.id.relativeChatLayout) as RelativeLayout
         editText = view.findViewById(R.id.editText) as EditText
         messageAdapter = MessageAdapter(ACTIVITY)
         messagesView = view.findViewById(R.id.messages_view) as ListView
         messagesView!!.adapter = messageAdapter
-        val data = MemberData(ACTIVITY.user.username, getRandomColor())
+        data = MemberData(ACTIVITY.user.username, getRandomColor())
         channelID = getString(R.string.chat_channel)
-        roomName = "observable-"+ACTIVITY.group.name+"-"+ACTIVITY.group.id
+        roomName = "observable-"+ACTIVITY.group.name+"___"+ACTIVITY.group.id
         scaledrone = Scaledrone(channelID, data)
         scaledrone!!.connect(object : Listener {
             override fun onOpen() {
                 println("Scaledrone connection open")
                 scaledrone!!.subscribe(roomName, this@ChatMapFragment, SubscribeOptions(100)).listenToHistoryEvents { room, message ->
-                    println("sooooos")
+                   onMessage(room, message)
+                    //println(message)
                 }
             }
 
@@ -174,6 +181,17 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         }
         sendMessage.setOnClickListener { view ->
             sendMessage(view)
+        }
+
+        mapHideButton.setOnClickListener{view ->
+            if(onLittleMap)
+            {
+                hideLittleMap()
+            }
+            else
+            {
+                bringLittleMap()
+            }
         }
 
         view.findViewById<FloatingActionButton>(R.id.myLocationButton).setOnClickListener {
@@ -503,8 +521,12 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     //------------------------
 
     fun sendMessage(view: View?) {
-        val message = editText!!.text.toString()
-        if (message.length > 0) {
+        val message = Message(
+            editText!!.text.toString(),
+            data,
+            true
+        )
+        if (message.text.length > 0) {
             scaledrone!!.publish(roomName, message)
             editText!!.text.clear()
         }
@@ -522,14 +544,14 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
-                receivedMessage.member.clientData,
-                MemberData::class.java
+                receivedMessage.data,
+                Message::class.java
             )
             val belongsToCurrentUser =
-                receivedMessage.clientID == scaledrone!!.clientID
+                data.memberData.name == this.data?.name
             val message = Message(
-                receivedMessage.data.asText(),
-                data,
+                data.text,
+                data.memberData,
                 belongsToCurrentUser
             )
             ACTIVITY.runOnUiThread {
@@ -559,17 +581,42 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         chat?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chatTextLayout?.setVisibility(View.VISIBLE)
         mapFragment.view?.layoutParams = chatlayoutparams
+
+        //afficher bouton affichage, slide sur bouton affichage,
+        //
+        mapFragment.view?.alpha = 0.5f
+        view?.myLocationButton?.hide()
+        view?.myTravelButton?.hide()
         mapFragment.view?.bringToFront()
         onMap = false
     }
 
     private fun bringMap(){
-        mapFragment.view?.layoutParams =  ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+        mapFragment.view?.layoutParams =   ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
         mapFragment.view?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chat?.setBackgroundColor(Color.parseColor("#90FFFFFF"))
-        chatTextLayout?.setVisibility(View.GONE)
+        chatTextLayout?.visibility = View.GONE
         chat?.layoutParams = chatlayoutparams
+        mapFragment.view?.alpha = 1f
+        view?.myLocationButton?.show()
+        view?.myTravelButton?.show()
         chat?.bringToFront()
         onMap = true
+    }
+
+
+
+    private fun bringLittleMap(){
+        mapFragment.view?.visibility = View.VISIBLE
+        relativeChatLayout?.visibility = View.VISIBLE
+        onLittleMap = true
+    }
+
+
+
+    private fun hideLittleMap(){
+        mapFragment.view?.visibility = View.GONE
+        relativeChatLayout?.visibility = View.GONE
+        onLittleMap = false
     }
 }
