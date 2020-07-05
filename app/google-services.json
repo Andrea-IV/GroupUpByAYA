@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "984961853405",
+    "firebase_url": "https://groupup-f3460.firebaseio.com",
+    "project_id": "groupup-f3460",
+    "storage_bucket": "groupup-f3460.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984961853405:android:2683d94e4cd7b52833b834",
+        "android_client_info": {
+          "package_name": "com.andrea.groupup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "984961853405-0hvsakd05u20gutb5g5it83eevftd1bm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpSte7M06P5WaML4EDlwvy-_HuqoZ44Dk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "984961853405-0hvsakd05u20gutb5g5it83eevftd1bm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

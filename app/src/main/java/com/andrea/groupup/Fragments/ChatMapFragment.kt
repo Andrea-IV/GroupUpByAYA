@@ -535,6 +535,28 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             if(resultCode == 1) {
                 createMeetingPointMarker?.remove()
                 createMeetingPointMarker = null
+                NotificationHttp(ACTIVITY).send(
+                    Notification(
+                        group.id,
+                        NotificationMessage(
+                            "Notification de rassemblement",
+                            "Votre ami " + user.username + " vous invite à le rejoindre !",
+                            null
+                        )
+                    ),
+                    token,
+                    object : VolleyCallback {
+                        override fun onResponse(jsonObject: JSONObject) {
+                            Log.d(TAG, "onActivityResult - NotificationHttp - onResponse")
+                        }
+
+                        override fun onError(error: VolleyError) {
+                            Log.d(TAG, "onActivityResult - NotificationHttp - onError")
+                            Log.e(TAG, error.toString())
+                        }
+
+                    }
+                )
             } else if (resultCode == 0) {
                 createMeetingPointMarker?.showInfoWindow()
             }

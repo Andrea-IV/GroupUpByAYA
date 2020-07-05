@@ -3,7 +3,7 @@ package com.andrea.groupup.Models
 import java.io.Serializable
 import java.util.*
 
-class User(var id: Int, var firstname: String, var lastname: String, var username: String, var pp_link: String, var email: String, var date_insc: Date, var admin: Int, var enabled: Int, var UserGroup: UserGroup) :
+class User(var id: Int, var firstname: String, var lastname: String, var username: String, var pp_link: String, var email: String, var date_insc: Date, var admin: Int, var enabled: Int, var UserGroup: UserGroup, var firebase_token: String?) :
     Serializable {
 
     override fun equals(other: Any?): Boolean {
