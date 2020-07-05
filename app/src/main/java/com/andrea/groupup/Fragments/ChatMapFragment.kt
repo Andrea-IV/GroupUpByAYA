@@ -27,6 +27,15 @@ import com.andrea.groupup.CreateMeetingPointActivity
 import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
+import com.andrea.groupup.Http.TravelHttp
+import com.andrea.groupup.Http.VolleyCallback
+import com.andrea.groupup.Http.VolleyCallbackArray
+import com.andrea.groupup.Models.Group
+import com.andrea.groupup.Models.LocalPlace
+import com.andrea.groupup.Models.MemberData
+import com.andrea.groupup.Models.Message
+import com.andrea.groupup.Models.Travel
+import com.andrea.groupup.Models.User
 import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
 import com.andrea.groupup.ShowMeetingPointActivity
@@ -47,6 +56,7 @@ import com.scaledrone.lib.Listener
 import com.scaledrone.lib.Room
 import com.scaledrone.lib.RoomListener
 import com.scaledrone.lib.Scaledrone
+import com.scaledrone.lib.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -69,7 +79,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mMap: GoogleMap
-    private lateinit var onMapChatButton: ImageButton;
+
     private var mLocationPermissionGranted = false;
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -95,17 +105,25 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 //    }
 
     //chat variables
+    private lateinit var onMapChatButton: ImageButton;
+    private lateinit var sendMessage: ImageButton;
+    private lateinit var mapHideButton: ImageButton;
+
 
     private var chat:LinearLayout? = null;
     private var chatTextLayout:LinearLayout? = null;
-    private var channelID: String? = "xFOd3Tqsb25TmL2e"
-    private val roomName = "observable-room"
+    private var relativeChatLayout:RelativeLayout? = null;
+    private var channelID: String? = null
+    private var roomName: String? = null
     private var editText: EditText? = null
     private var scaledrone: Scaledrone? = null
     private var messageAdapter: MessageAdapter? = null
     private var messagesView: ListView? = null
-    private var onMap: Boolean = true
     private var chatlayoutparams: ViewGroup.LayoutParams? = null
+    private var maplayoutparams: ViewGroup.LayoutParams? = null
+    private var data : MemberData? = null
+    private var onMap: Boolean = true
+    private var onLittleMap: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -116,36 +134,45 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        var maplayoutparams = mapFragment.view?.layoutParams
+        maplayoutparams = mapFragment.view?.layoutParams
         chat = view.findViewById(R.id.chat) as LinearLayout
         chatlayoutparams = chat?.layoutParams
         onMapChatButton = view.onMapChatButton
+        sendMessage = view.sendMessage
+        mapHideButton = view.mapHideButton
 
 
         chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
+        relativeChatLayout = view.findViewById(R.id.relativeChatLayout) as RelativeLayout
         editText = view.findViewById(R.id.editText) as EditText
         messageAdapter = MessageAdapter(ACTIVITY)
         messagesView = view.findViewById(R.id.messages_view) as ListView
         messagesView!!.adapter = messageAdapter
-        val data = MemberData(getRandomName(), getRandomColor())
+        data = MemberData(ACTIVITY.user.username, getRandomColor())
+        channelID = getString(R.string.chat_channel)
+        roomName = "observable-"+ACTIVITY.group.name+"___"+ACTIVITY.group.id
         scaledrone = Scaledrone(channelID, data)
         scaledrone!!.connect(object : Listener {
             override fun onOpen() {
                 println("Scaledrone connection open")
-                scaledrone!!.subscribe(roomName, this@ChatMapFragment)
+                scaledrone!!.subscribe(roomName, this@ChatMapFragment, SubscribeOptions(100)).listenToHistoryEvents { room, message ->
+                   onMessage(room, message)
+                    //println(message)
+                }
             }
 
             override fun onOpenFailure(ex: java.lang.Exception) {
-                System.err.println(ex)
+                System.err.println("sauce"+ex)
             }
 
             override fun onFailure(ex: java.lang.Exception) {
-                System.err.println(ex)
+                System.err.println("sauce"+ex)
             }
 
             override fun onClosed(reason: String) {
                 System.err.println(reason)
             }
+
         })
 
         onMapChatButton.setOnClickListener { view ->
@@ -157,6 +184,20 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             else
             {
                 bringMap()
+            }
+        }
+        sendMessage.setOnClickListener { view ->
+            sendMessage()
+        }
+
+        mapHideButton.setOnClickListener{view ->
+            if(onLittleMap)
+            {
+                hideLittleMap()
+            }
+            else
+            {
+                bringLittleMap()
             }
         }
 
@@ -541,11 +582,26 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     //CHAT FUNCTIONS
     //------------------------
 
-    fun sendMessage(view: View?) {
-        val message = editText!!.text.toString()
-        if (message.length > 0) {
+    fun sendMessage() {
+        val message = Message(
+            editText!!.text.toString(),
+            data,
+            true
+        )
+        if (message.text.length > 0) {
             scaledrone!!.publish(roomName, message)
             editText!!.text.clear()
+        }
+    }
+
+    fun sendApplicationMessage(message: String) {
+        val message = Message(
+            message,
+            data,
+            true
+        )
+        if (message.text.length > 0) {
+            scaledrone!!.publish(roomName, message)
         }
     }
 
@@ -561,162 +617,25 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
-                receivedMessage.member.clientData,
-                MemberData::class.java
+                receivedMessage.data,
+                Message::class.java
             )
             val belongsToCurrentUser =
-                receivedMessage.clientID == scaledrone!!.clientID
+                data.memberData.name == this.data?.name
             val message = Message(
-                receivedMessage.data.asText(),
-                data,
+                data.text,
+                data.memberData,
                 belongsToCurrentUser
             )
-            //runOnUiThread {
+            ACTIVITY.runOnUiThread {
                 messageAdapter!!.add(message)
                 messagesView!!.setSelection(messagesView!!.count - 1)
-            //}
+            }
         } catch (e: JsonProcessingException) {
             e.printStackTrace()
         }
     }
 
-    private fun getRandomName(): String? {
-        val adjs = arrayOf(
-            "autumn",
-            "hidden",
-            "bitter",
-            "misty",
-            "silent",
-            "empty",
-            "dry",
-            "dark",
-            "summer",
-            "icy",
-            "delicate",
-            "quiet",
-            "white",
-            "cool",
-            "spring",
-            "winter",
-            "patient",
-            "twilight",
-            "dawn",
-            "crimson",
-            "wispy",
-            "weathered",
-            "blue",
-            "billowing",
-            "broken",
-            "cold",
-            "damp",
-            "falling",
-            "frosty",
-            "green",
-            "long",
-            "late",
-            "lingering",
-            "bold",
-            "little",
-            "morning",
-            "muddy",
-            "old",
-            "red",
-            "rough",
-            "still",
-            "small",
-            "sparkling",
-            "throbbing",
-            "shy",
-            "wandering",
-            "withered",
-            "wild",
-            "black",
-            "young",
-            "holy",
-            "solitary",
-            "fragrant",
-            "aged",
-            "snowy",
-            "proud",
-            "floral",
-            "restless",
-            "divine",
-            "polished",
-            "ancient",
-            "purple",
-            "lively",
-            "nameless"
-        )
-        val nouns = arrayOf(
-            "waterfall",
-            "river",
-            "breeze",
-            "moon",
-            "rain",
-            "wind",
-            "sea",
-            "morning",
-            "snow",
-            "lake",
-            "sunset",
-            "pine",
-            "shadow",
-            "leaf",
-            "dawn",
-            "glitter",
-            "forest",
-            "hill",
-            "cloud",
-            "meadow",
-            "sun",
-            "glade",
-            "bird",
-            "brook",
-            "butterfly",
-            "bush",
-            "dew",
-            "dust",
-            "field",
-            "fire",
-            "flower",
-            "firefly",
-            "feather",
-            "grass",
-            "haze",
-            "mountain",
-            "night",
-            "pond",
-            "darkness",
-            "snowflake",
-            "silence",
-            "sound",
-            "sky",
-            "shape",
-            "surf",
-            "thunder",
-            "violet",
-            "water",
-            "wildflower",
-            "wave",
-            "water",
-            "resonance",
-            "sun",
-            "wood",
-            "dream",
-            "cherry",
-            "tree",
-            "fog",
-            "frost",
-            "voice",
-            "paper",
-            "frog",
-            "smoke",
-            "star"
-        )
-        return adjs[Math.floor(Math.random() * adjs.size).toInt()] +
-                "_" +
-                nouns[Math.floor(Math.random() * nouns.size).toInt()]
-    }
 
     private fun getRandomColor(): String? {
         val r = Random()
@@ -735,17 +654,42 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         chat?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chatTextLayout?.setVisibility(View.VISIBLE)
         mapFragment.view?.layoutParams = chatlayoutparams
+
+        //afficher bouton affichage, slide sur bouton affichage,
+        //
+        mapFragment.view?.alpha = 0.5f
+        view?.myLocationButton?.hide()
+        view?.myTravelButton?.hide()
         mapFragment.view?.bringToFront()
         onMap = false
     }
 
     private fun bringMap(){
-        mapFragment.view?.layoutParams =  ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
+        mapFragment.view?.layoutParams =   ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
         mapFragment.view?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chat?.setBackgroundColor(Color.parseColor("#90FFFFFF"))
-        chatTextLayout?.setVisibility(View.GONE)
+        chatTextLayout?.visibility = View.GONE
         chat?.layoutParams = chatlayoutparams
+        mapFragment.view?.alpha = 1f
+        view?.myLocationButton?.show()
+        view?.myTravelButton?.show()
         chat?.bringToFront()
         onMap = true
+    }
+
+
+
+    private fun bringLittleMap(){
+        mapFragment.view?.visibility = View.VISIBLE
+        relativeChatLayout?.visibility = View.VISIBLE
+        onLittleMap = true
+    }
+
+
+
+    private fun hideLittleMap(){
+        mapFragment.view?.visibility = View.GONE
+        relativeChatLayout?.visibility = View.GONE
+        onLittleMap = false
     }
 }

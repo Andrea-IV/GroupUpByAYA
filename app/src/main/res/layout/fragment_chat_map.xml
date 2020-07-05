@@ -12,6 +12,7 @@
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/transparent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,15 +43,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
     <LinearLayout
         android:id="@+id/chat"
-        android:layout_width="100dp"
-        android:layout_height="150dp"
+        android:layout_width="150dp"
+        android:layout_height="225dp"
         android:background="#90FFFFFF"
         android:clipToPadding="false"
         android:focusableInTouchMode="true"
         android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
 
@@ -80,36 +82,47 @@
                 android:paddingHorizontal="10dp"
                 android:text="" />
 
+            <ImageButton
+                android:id="@+id/mapHideButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_pin_drop_blue"
+                android:layout_gravity="center"
+                android:layout_marginHorizontal="10dp"
+                android:padding="20dp"
+                android:scaleType="fitCenter"/>
+
 
             <ImageButton
+                android:id="@+id/sendMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="10dp"
                 android:background="@drawable/ic_send_black_24dp"
                 android:padding="20dp"
-                android:scaleType="fitCenter"
-                android:onClick="sendMessage"/>
+                android:scaleType="fitCenter" />
         </LinearLayout>
     </LinearLayout>
 
 
-
     <RelativeLayout
-        android:layout_width="100dp"
-        android:layout_height="150dp"
-        android:orientation="horizontal"
+        android:id="@+id/relativeChatLayout"
+        android:layout_width="150dp"
+        android:layout_height="225dp"
         android:layout_gravity="right"
+        android:orientation="horizontal"
         android:translationZ="1dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/chat"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
             android:id="@+id/onMapChatButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#00FFFFFF"/>
+            android:background="#00FFFFFF" />
     </RelativeLayout>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

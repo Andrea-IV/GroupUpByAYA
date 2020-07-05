@@ -1,8 +1,6 @@
 package com.andrea.groupup.Adapters;
 
 import com.andrea.groupup.Models.Message;
-//import com.andrea.groupup.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
