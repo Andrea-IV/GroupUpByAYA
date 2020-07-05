@@ -538,7 +538,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             if(resultCode == 1) {
                 createMeetingPointMarker?.remove()
                 createMeetingPointMarker = null
-                sendNotifications("Notification de rassemblement", "Votre ami " + user.username + " vous invite à le rejoindre !", null)
+                sendNotifications("Meeting notification", "Your friend " + user.username + " asks you to join him !", null)
             } else if (resultCode == 0) {
                 createMeetingPointMarker?.showInfoWindow()
             }
@@ -579,7 +579,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         val intent = Intent(context, ShowMeetingPointActivity::class.java)
         val mp = meetingPointsList.filter { it.id == marker.tag.toString().split(" ")[1].toInt() }[0]
         intent.putExtra("meetingpoint", mp)
-        intent.putExtra("user", group.members.filter { it.id == mp.UserId }[0])
+        intent.putExtra("token", token)
+        val creator = group.members.filter { it.id == mp.UserId }[0]
+        intent.putExtra("user", creator)
+        intent.putExtra("creator", creator.id == user.id)
         startActivityForResult(intent, 2)
     }
 

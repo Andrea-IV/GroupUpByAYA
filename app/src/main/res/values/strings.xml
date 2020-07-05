@@ -4,7 +4,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
     <string name="group_title">Your groups</string>
-    <string name="create_meeting_point_title">Point de rdv</string>
+    <string name="create_meeting_point_title">Meeting</string>
     <string name="explore_title">Explore</string>
     <string name="schedule_title">Schedule</string>
     <string name="user_title">Grouped Up</string>

@@ -24,11 +24,11 @@ import kotlinx.android.synthetic.main.activity_place.*
 import org.json.JSONObject
 import java.util.*
 
-private const val TAG = "MEETING POINT"
+private const val TAG = "CREATE MEETING POINT"
 class CreateMeetingPointActivity : AppCompatActivity() {
 
     private lateinit var spinner: Spinner
-    private lateinit var saveButton: ImageView
+    private lateinit var saveButton: TextView
     private lateinit var description: EditText
     private lateinit var coordXEdit: EditText
     private lateinit var coordYEdit: EditText

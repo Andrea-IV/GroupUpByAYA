@@ -1,7 +1,6 @@
 package com.andrea.groupup.Http
 
 import android.content.Context
-import android.util.Log
 import com.andrea.groupup.Constants
 import com.andrea.groupup.Models.MeetingPoint
 import com.google.gson.Gson
@@ -17,5 +16,9 @@ class MeetingPointHttp (val context: Context) {
 
     fun create(meetingPoint: MeetingPoint, token: String, volleyCallback: VolleyCallback) {
         http.postWithToken(URL, volleyCallback,  JSONObject(Gson().toJson(meetingPoint)), token)
+    }
+
+    fun delete(id: Int, token: String, volleyCallback: VolleyCallback) {
+        http.deleteWithToken("$URL/$id", volleyCallback, token)
     }
 }

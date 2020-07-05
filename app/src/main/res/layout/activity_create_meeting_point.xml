@@ -14,19 +14,19 @@
 
         <ImageView
             android:id="@+id/create_meeting_point_back"
-            android:layout_width="18dp"
-            android:layout_height="20dp"
+            android:layout_width="28dp"
+            android:layout_height="31dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="6dp"
             android:src="@drawable/back_arrow_fat_white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/textView"
-            app:layout_constraintHorizontal_bias="0.09"
+            app:layout_constraintHorizontal_bias="0.088"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintVertical_bias="0.2" />
 
         <TextView
             android:id="@+id/textView"
@@ -44,7 +44,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-        <ImageView
+        <TextView
             android:id="@+id/create_meeting_point_save"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -52,7 +52,10 @@
             android:layout_marginTop="6dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/save_icon_white"
+            android:textSize="17dp"
+            android:gravity="center"
+            android:textColor="@color/basicBackground"
+            android:text="Save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.9"
@@ -70,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:text="Coordonné X:"
+            android:text="Latitude :"
             android:textSize="17dp"
             android:layout_weight="1" />
         <TextView
@@ -78,7 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textSize="17dp"
-            android:text="Coordonné Y:"
+            android:text="Longitude Y:"
             android:layout_weight="1" />
     </LinearLayout>
 
@@ -110,7 +113,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Description du rendez-vous:"
+        android:text="Meeting description (additional):"
         android:textSize="17dp"
         android:layout_marginTop="15dp"/>
     <EditText
@@ -126,7 +129,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Temps d'affichage du point sur la carte:"
+        android:text="Meeting point display time:"
         android:layout_marginTop="15dp"
         android:textSize="17dp" />
 
