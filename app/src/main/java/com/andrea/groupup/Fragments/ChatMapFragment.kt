@@ -124,6 +124,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     private var data : MemberData? = null
     private var onMap: Boolean = true
     private var onLittleMap: Boolean = true
+    private var isHistory: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -156,7 +157,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             override fun onOpen() {
                 println("Scaledrone connection open")
                 scaledrone!!.subscribe(roomName, this@ChatMapFragment, SubscribeOptions(100)).listenToHistoryEvents { room, message ->
+                    isHistory = true
                    onMessage(room, message)
+                    isHistory = false
                     //println(message)
                 }
             }
@@ -553,7 +556,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
             override fun onError(error: VolleyError) {
                 Log.d(TAG, "getMeetingPointsNow - onError")
-                Log.e(TAG, error.message)
+                Log.e(TAG, error.toString())
             }
         })
     }
@@ -614,6 +617,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     }
 
     override fun onMessage(room: Room?, receivedMessage: com.scaledrone.lib.Message) {
+        if(isHistory){
+            println("isHistory")
+        }
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
