@@ -709,9 +709,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             Notification(
                 group.id,
                 NotificationMessage(
-                    title,
-                    message,
-                    tag
+                    Notif(
+                        title,
+                        message,
+                        tag
+                    )
                 )
             ),
             token,
