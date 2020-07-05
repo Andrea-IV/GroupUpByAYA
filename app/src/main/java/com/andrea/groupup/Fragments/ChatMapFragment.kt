@@ -229,6 +229,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             isTravelDisplayed = !isTravelDisplayed
         }
 
+        view.findViewById<FloatingActionButton>(R.id.myChatButton).setOnClickListener {
+            bringChat()
+        }
+
         group = ACTIVITY.group
         user = ACTIVITY.user
         token = ACTIVITY.token
@@ -639,9 +643,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
                 messageAdapter!!.add(message)
                 messagesView!!.setSelection(messagesView!!.count - 1)
             }
-            if(!isHistory){
-                //notif interne
-                println("ok")
+            if(!isHistory && !belongsToCurrentUser){
+                view?.myChatButton?.setImageResource(R.drawable.chat_notif);
             }
         } catch (e: JsonProcessingException) {
             e.printStackTrace()
@@ -666,13 +669,12 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         chat?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chatTextLayout?.setVisibility(View.VISIBLE)
         mapFragment.view?.layoutParams = chatlayoutparams
-
-        //afficher bouton affichage, slide sur bouton affichage,
-        //
         mapFragment.view?.alpha = 0.5f
         view?.myLocationButton?.hide()
         view?.myTravelButton?.hide()
+        view?.myChatButton?.hide()
         mapFragment.view?.bringToFront()
+        view?.myChatButton?.setImageResource(R.drawable.chat);
         onMap = false
     }
 
@@ -685,6 +687,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         mapFragment.view?.alpha = 1f
         view?.myLocationButton?.show()
         view?.myTravelButton?.show()
+        view?.myChatButton?.show()
         chat?.bringToFront()
         onMap = true
     }
