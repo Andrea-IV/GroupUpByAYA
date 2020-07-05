@@ -10,6 +10,8 @@ import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.gson.Gson
 import org.json.JSONObject
 import java.io.FileOutputStream
@@ -20,6 +22,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        FirebaseInstanceId.getInstance().instanceId
+            .addOnCompleteListener(OnCompleteListener { task ->
+//                if (!task.isSuccessful) {
+//                    //To do//
+//                    return@OnCompleteListener
+//                }
+
+                // Get the Instance ID token//
+                val token = task.result!!.token
+                Log.d("FIREBASE TOKEN", token)
+            })
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener{
             val intent = Intent(this, GroupActivity::class.java)
