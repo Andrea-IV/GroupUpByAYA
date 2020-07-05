@@ -124,6 +124,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     private var data : MemberData? = null
     private var onMap: Boolean = true
     private var onLittleMap: Boolean = true
+    private var isHistory: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -156,7 +157,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             override fun onOpen() {
                 println("Scaledrone connection open")
                 scaledrone!!.subscribe(roomName, this@ChatMapFragment, SubscribeOptions(100)).listenToHistoryEvents { room, message ->
+                    isHistory = true
                    onMessage(room, message)
+                    isHistory = false
                     //println(message)
                 }
             }
@@ -535,28 +538,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             if(resultCode == 1) {
                 createMeetingPointMarker?.remove()
                 createMeetingPointMarker = null
-                NotificationHttp(ACTIVITY).send(
-                    Notification(
-                        group.id,
-                        NotificationMessage(
-                            "Notification de rassemblement",
-                            "Votre ami " + user.username + " vous invite à le rejoindre !",
-                            null
-                        )
-                    ),
-                    token,
-                    object : VolleyCallback {
-                        override fun onResponse(jsonObject: JSONObject) {
-                            Log.d(TAG, "onActivityResult - NotificationHttp - onResponse")
-                        }
-
-                        override fun onError(error: VolleyError) {
-                            Log.d(TAG, "onActivityResult - NotificationHttp - onError")
-                            Log.e(TAG, error.toString())
-                        }
-
-                    }
-                )
+                sendNotifications("Notification de rassemblement", "Votre ami " + user.username + " vous invite à le rejoindre !", null)
             } else if (resultCode == 0) {
                 createMeetingPointMarker?.showInfoWindow()
             }
@@ -575,7 +557,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
             override fun onError(error: VolleyError) {
                 Log.d(TAG, "getMeetingPointsNow - onError")
-                Log.e(TAG, error.message)
+                Log.e(TAG, error.toString())
             }
         })
     }
@@ -636,6 +618,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     }
 
     override fun onMessage(room: Room?, receivedMessage: com.scaledrone.lib.Message) {
+        if(!isHistory){
+            //notif interne
+            /*sendNotifications("")
+            title avec group name
+            tag avec idgroup*/
+            
+        }
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
@@ -713,5 +702,30 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         mapFragment.view?.visibility = View.GONE
         relativeChatLayout?.visibility = View.GONE
         onLittleMap = false
+    }
+
+    private fun sendNotifications(title: String, message: String, tag: String?){
+        NotificationHttp(ACTIVITY).send(
+            Notification(
+                group.id,
+                NotificationMessage(
+                    title,
+                    message,
+                    tag
+                )
+            ),
+            token,
+            object : VolleyCallback {
+                override fun onResponse(jsonObject: JSONObject) {
+                    Log.d(TAG, "onActivityResult - NotificationHttp - onResponse")
+                }
+
+                override fun onError(error: VolleyError) {
+                    Log.d(TAG, "onActivityResult - NotificationHttp - onError")
+                    Log.e(TAG, error.toString())
+                }
+
+            }
+        )
     }
 }
