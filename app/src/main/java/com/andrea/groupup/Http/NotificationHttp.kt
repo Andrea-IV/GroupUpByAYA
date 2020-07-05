@@ -17,5 +17,6 @@ class NotificationHttp (val context: Context) {
     fun send(notification: Notification, token: String, volleyCallback: VolleyCallback) {
         Log.d("HTTP", "NotificationHttp - send")
         http.postWithToken(URL, volleyCallback,  JSONObject(Gson().toJson(notification)), token)
+        println(Gson().toJson(notification))
     }
 }
