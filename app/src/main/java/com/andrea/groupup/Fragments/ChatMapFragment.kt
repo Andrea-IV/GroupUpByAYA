@@ -593,6 +593,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             true
         )
         if (message.text.length > 0) {
+            sendNotifications("New Chat Message in group : "+group.name, message.text, "notif_group_"+group.id)
             scaledrone!!.publish(roomName, message)
             editText!!.text.clear()
         }
@@ -618,13 +619,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     }
 
     override fun onMessage(room: Room?, receivedMessage: com.scaledrone.lib.Message) {
-        if(!isHistory){
-            //notif interne
-            /*sendNotifications("")
-            title avec group name
-            tag avec idgroup*/
-            
-        }
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
@@ -641,6 +635,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
             ACTIVITY.runOnUiThread {
                 messageAdapter!!.add(message)
                 messagesView!!.setSelection(messagesView!!.count - 1)
+            }
+            if(!isHistory){
+                //notif interne
+                println("ok")
             }
         } catch (e: JsonProcessingException) {
             e.printStackTrace()
