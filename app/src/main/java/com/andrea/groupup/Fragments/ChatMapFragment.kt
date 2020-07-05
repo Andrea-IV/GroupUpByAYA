@@ -52,6 +52,12 @@ import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.karumi.dexter.listener.single.PermissionListener
 import com.scaledrone.lib.Listener
 import com.scaledrone.lib.Room
 import com.scaledrone.lib.RoomListener
@@ -69,9 +75,9 @@ import kotlin.collections.ArrayList
 
 private const val TAG = "MAP"
 
-class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButtonClickListener,*/ GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener {
+class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
 
-    private var permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+    private var permissions = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
     lateinit var group: Group
     lateinit var user: User
@@ -207,11 +213,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         view.findViewById<FloatingActionButton>(R.id.myLocationButton).setOnClickListener {
             Log.d(TAG, "onMyLocationButtonClick")
 
-            if(!checkGps()) {
-                askForGps()
-            } else {
-                getDeviceLocation()
-            }
+            Dexter.withActivity(ACTIVITY)
+                .withPermissions(permissions)
+                .withListener(this)
+                .check()
         }
 
         view.findViewById<FloatingActionButton>(R.id.myTravelButton).setOnClickListener {
@@ -239,6 +244,35 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
 //        meetingPointsHandler = Handler(Looper.getMainLooper())
         return view
+    }
+
+    override fun onPermissionRationaleShouldBeShown(permissions: MutableList<PermissionRequest>, token: PermissionToken) {
+        Log.d(TAG, "onPermissionRationaleShouldBeShown")
+        // This method will be called when the user rejects a permission request
+        // You must display a dialog box that explains to the user why the application needs this permission
+        val dialog = AlertDialog
+            .Builder(this.context)
+            .setTitle("Gps permission error")
+            .setMessage("Please go to your application settings and allow location share so you can share your location with your friends !")
+            .setCancelable(false)
+            .setNegativeButton("Refuse") { dialog, which ->
+                dialog.dismiss()
+                token?.cancelPermissionRequest()
+            }
+            .setPositiveButton("Accept") { dialog, which ->
+                dialog.dismiss()
+                token?.continuePermissionRequest()
+            }
+            .show()
+    }
+
+    override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+        Log.d(TAG, "onPermissionsChecked")
+        // Here you have to check granted permissions
+        if (report.areAllPermissionsGranted()) {
+            mMap.isMyLocationEnabled = true
+            getDeviceLocation()
+        }
     }
 
     override fun onPause() {
@@ -271,10 +305,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
                 isTravelDisplayed = false
             }
         })
-    }
-
-    private fun getTodaysMeetingpoints() {
-
     }
 
     private fun displayActualTravel() {
@@ -312,58 +342,48 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
     private fun getDeviceLocation() {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
-
-        try {
-            if(mLocationPermissionGranted) {
-                val location = this.mFusedLocationProviderClient.lastLocation
-                location.addOnCompleteListener(OnCompleteListener {
-                    if(it.isSuccessful) {
-                        Log.d(TAG, "onComplete: found location")
-                        val current = it.result
-                        println("move please")
-                        if(current !== null)
-                            moveCamera(LatLng(current.latitude, current.longitude), 9.5f);
-                    } else {
-                        Log.d(TAG, "onComplete: location not found")
-                        Toast.makeText(this.activity, "Can't get your current location", Toast.LENGTH_SHORT).show()
-                    }
-                })
+        mFusedLocationProviderClient.lastLocation.addOnCompleteListener {
+            if(it.isSuccessful) {
+                Log.d(TAG, "onComplete: found location")
+                val current = it.result
+                if(current !== null)
+                    moveCamera(LatLng(current.latitude, current.longitude), 9.5f);
+            } else {
+                Log.d(TAG, "onComplete: location not found")
+                Toast.makeText(this.activity, "Can't get your current location", Toast.LENGTH_SHORT).show()
             }
-
-        } catch (e: SecurityException) {
-            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.message)
         }
     }
 
-    private fun checkGps(): Boolean {
-        val lm: LocationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        var gpsEnabled = false;
-        try {
-            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (e: Exception) {
-            Log.e(TAG, "askForGps: " + e.message)
-        }
+//    private fun checkGps(): Boolean {
+//        val lm: LocationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+//        var gpsEnabled = false;
+//        try {
+//            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+//        } catch (e: Exception) {
+//            Log.e(TAG, "askForGps: " + e.message)
+//        }
+//
+//        return gpsEnabled
+//    }
 
-        return gpsEnabled
-    }
-
-    private fun askForGps() {
-        Log.d(TAG, "askForGps")
-
-        val dialog = AlertDialog
-            .Builder(this.context)
-            .setMessage("Please turn on GPS Location")
-            .setCancelable(false)
-            .setPositiveButton("Done", DialogInterface.OnClickListener {
-                _, _-> run {
-                    if(checkGps()) getDeviceLocation()
-                }
-            })
-            .create()
-
-        dialog.setTitle("Gps error")
-        dialog.show()
-    }
+//    private fun askForGps() {
+//        Log.d(TAG, "askForGps")
+//
+//        val dialog = AlertDialog
+//            .Builder(this.context)
+//            .setMessage("Please turn on GPS Location")
+//            .setCancelable(false)
+//            .setPositiveButton("Done", DialogInterface.OnClickListener {
+//                _, _-> run {
+//                    if(checkGps()) getDeviceLocation()
+//                }
+//            })
+//            .create()
+//
+//        dialog.setTitle("Gps error")
+//        dialog.show()
+//    }
 
     private fun getLocalPlaces(target: LatLng) {
         Log.d(TAG, "getLocalPlaces = " + target.latitude + " " + target.longitude)
@@ -458,13 +478,14 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMapClickListener(mapClickEvent)
 
-        if(checkPermission()) {
-            mLocationPermissionGranted = true
-            getDeviceLocation();
-            mMap.isMyLocationEnabled = true
-        } else {
-            requestPermissions()
-        }
+//        if(checkPermission()) {
+//            mLocationPermissionGranted = true
+//            mMap.isMyLocationEnabled = true
+
+//            getDeviceLocation();
+//        } else {
+//            requestPermissions()
+//        }
 
         getTodaysTravel()
     }
@@ -498,34 +519,34 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
-    private fun checkPermission() : Boolean {
-        Log.d(TAG, "checkPermission")
-        return (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-    }
+//    private fun checkPermission() : Boolean {
+//        Log.d(TAG, "checkPermission")
+//        return (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+//                && ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+//    }
 
-    private fun requestPermissions() {
-        Log.d(TAG, "requestPermissions")
-        ActivityCompat.requestPermissions(this.requireActivity(), this.permissions,1)
-    }
+//    private fun requestPermissions() {
+//        Log.d(TAG, "requestPermissions")
+//        ActivityCompat.requestPermissions(this.requireActivity(), this.permissions,1)
+//    }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        Log.d(TAG, "onRequestPermissionsResult")
-        if(requestCode == 1) {
-            if(grantResults.isNotEmpty()) {
-                grantResults.forEach {
-                    if(it != PackageManager.PERMISSION_GRANTED) {
-                        mLocationPermissionGranted = false
-                        return
-                    }
-                }
-                mLocationPermissionGranted = true;
-                mMap.isMyLocationEnabled = true
-                getDeviceLocation()
-
-            }
-        }
-    }
+//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+//        Log.d(TAG, "onRequestPermissionsResult")
+//        if(requestCode == 1) {
+//            if(grantResults.isNotEmpty()) {
+//                grantResults.forEach {
+//                    if(it != PackageManager.PERMISSION_GRANTED) {
+//                        mLocationPermissionGranted = false
+//                        return
+//                    }
+//                }
+//                mLocationPermissionGranted = true;
+//                mMap.isMyLocationEnabled = true
+//                getDeviceLocation()
+//
+//            }
+//        }
+//    }
 
     private fun displayMeetingPointCreateActivity(marker: Marker) {
         Log.d(TAG, "displayMeetingPointCreateActivity")
