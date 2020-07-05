@@ -1,13 +1,11 @@
 package com.andrea.groupup.Fragments
 
 import android.Manifest
-import android.app.ActivityOptions
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.location.LocationManager
 import android.os.Bundle
@@ -17,30 +15,22 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.Toast
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import com.andrea.groupup.Adapters.MessageAdapter
-import com.andrea.groupup.Http.LocalPlaceHttp
+import com.andrea.groupup.Adapters.PLACE_STRING
+import com.andrea.groupup.CreateMeetingPointActivity
+import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
-import com.andrea.groupup.Http.TravelHttp
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
-import com.andrea.groupup.Models.Group
-import com.andrea.groupup.Models.LocalPlace
-import com.andrea.groupup.Models.Travel
-import com.andrea.groupup.Models.User
+import com.andrea.groupup.Models.*
 import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
+import com.andrea.groupup.ShowMeetingPointActivity
 import com.android.volley.VolleyError
-import com.andrea.groupup.Models.MemberData
-import com.andrea.groupup.Models.Message
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -57,14 +47,11 @@ import com.scaledrone.lib.Listener
 import com.scaledrone.lib.Room
 import com.scaledrone.lib.RoomListener
 import com.scaledrone.lib.Scaledrone
-import kotlinx.android.synthetic.main.activity_place.*
-import kotlinx.android.synthetic.main.fragment_chat_map.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /**
  * A simple [Fragment] subclass.
@@ -93,17 +80,19 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     private var todaysTravel: Travel? = null
     private var actualTravel: Travel? = null
     private var travelMarkers = ArrayList<Marker>()
-    private lateinit var actualPolyline: Polyline
+    private var actualPolyline: Polyline? = null
     private var isTravelDisplayed = true
-
+    private var createMeetingPointMarker: Marker? = null
     private lateinit var meetingPointsHandler: Handler
+    private lateinit var meetingPointsList: List<MeetingPoint>
+    private var meetingPointMarkerList = ArrayList<Marker>()
 
-    private val checkClockForMeetingPoints = object: Runnable {
-        override fun run() {
-            displayMeetingPoints()
-            meetingPointsHandler.postDelayed(this, 60000) // every minutes
-        }
-    }
+//    private val checkClockForMeetingPoints = object: Runnable {
+//        override fun run() {
+//            displayMeetingPoints()
+//            meetingPointsHandler.postDelayed(this, 60000) // every minutes
+//        }
+//    }
 
     //chat variables
 
@@ -186,7 +175,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
             if(isTravelDisplayed) {
                 removeMarkers(travelMarkers)
-                actualPolyline.remove()
+                actualPolyline?.remove()
                 setLocalPlacesMarkers()
             } else {
                 removeMarkers(localPlacesMarkers)
@@ -200,23 +189,20 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         user = ACTIVITY.user
         token = ACTIVITY.token
 
-        meetingPointsHandler = Handler(Looper.getMainLooper())
+//        meetingPointsHandler = Handler(Looper.getMainLooper())
         return view
     }
 
     override fun onPause() {
         super.onPause()
-        meetingPointsHandler.removeCallbacks(checkClockForMeetingPoints)
+//        meetingPointsHandler.removeCallbacks(checkClockForMeetingPoints)
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "ITS RESUMING")
-        meetingPointsHandler.post(checkClockForMeetingPoints)
-    }
-
-    fun displayMeetingPoints() {
-
+        Log.d(TAG, "onResume")
+//        meetingPointsHandler.post(checkClockForMeetingPoints)
+        getMeetingPointsNow()
     }
 
     private fun getTodaysTravel() {
@@ -261,16 +247,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
                 }
             }
 
-            val marker = mMap.addMarker(
-                MarkerOptions()
-                    .position(LatLng(it.coordinate_x.toDouble(), it.coordinate_y.toDouble()))
-                    .title(it.name)
-                    .icon(bitmap)
-
-            )
-
-            marker.tag = it.id
-            travelMarkers.add(marker)
+            travelMarkers.add(addMarker(it.name, null, it.id.toString(), LatLng(it.coordinate_x.toDouble(), it.coordinate_y.toDouble()), bitmap, false))
         }
     }
 
@@ -342,7 +319,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
     private fun getLocalPlaces(target: LatLng) {
         Log.d(TAG, "getLocalPlaces = " + target.latitude + " " + target.longitude)
-        LocalPlaceHttp(this.requireContext()).getByLatLng(target.latitude.toString(), target.longitude.toString(), object: VolleyCallbackArray {
+        LocalPlaceHttp(this.requireContext()).getByLatLngAndTrad(target.latitude.toString(), target.longitude.toString(), Locale.getDefault().language, object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
@@ -360,7 +337,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
     private fun setLocalPlacesMarkers() {
         localPlaces.forEach {
-            addMarker(it.id, it.name, it.opening_hour + " - " + it.closing_hour, LatLng(it.coordinate_x.toDouble(), it.coordinate_y.toDouble()), false)
+            localPlacesMarkers.add(addMarker(
+                it.name,
+                it.opening_hour + " - " + it.closing_hour,
+                it.id.toString(),
+                LatLng(it.coordinate_x.toDouble(), it.coordinate_y.toDouble()),
+                null,
+                false))
         }
     }
 
@@ -372,17 +355,23 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
 
         return false
     }
-    private fun addMarker(id: Int, title: String, snippet: String, latLng: LatLng, show: Boolean){
+
+    fun addMarker(title: String?, snippet: String?, tag: String?, latLng: LatLng, bitmap: BitmapDescriptor?, showInfoWindow: Boolean): Marker {
         val marker = mMap.addMarker(
             MarkerOptions()
                 .position(latLng)
                 .title(title)
                 .snippet(snippet)
+                .icon(bitmap)
         )
 
-        marker.hideInfoWindow()
-        marker.tag = id
-        localPlacesMarkers.add(marker)
+        if(showInfoWindow)
+            marker.showInfoWindow()
+        else
+            marker.hideInfoWindow()
+
+        marker.tag = tag
+        return marker
     }
 
     private fun removeMarkers(markerList: ArrayList<Marker>) {
@@ -394,26 +383,23 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
     }
 
     private fun displayLocalPlace(marker: Marker) {
-        Log.d(TAG, "displayLocalPlace " + marker.title)
-        val localPlace = localPlaces.filter { it.id == marker.tag }
+        Log.d(TAG, "displayLocalPlace " + marker.tag)
+        val localPlace = localPlaces.filter { it.id == marker.tag.toString().toInt() }[0]
         println(localPlace)
-        val intent = Intent(activity, PlaceActivity::class.java)
-        intent.putExtra("localPlace", Gson().toJson(localPlace))
+        val intent = Intent(context, PlaceActivity::class.java).apply {
+            putExtra("PLACE", localPlace)
+            putExtra("TOKEN", token)
+            putExtra("FROM", "map")
+        }
         startActivity(intent)
     }
-    // -------------------------
 
-    val mapClickEvent = object : GoogleMap.OnMapClickListener {
-        override fun onMapClick(p0: LatLng?) {
-            Log.d(TAG, "OnMapClickListener ${p0?.latitude} ${p0?.longitude}")
 
-            val marker = mMap.addMarker(
-                MarkerOptions()
-                .position(p0!!)
-                .title("Ajouter un point de rassemblement")
-            )
-            marker.tag = "meetingpoint"
-        }
+    private val mapClickEvent = GoogleMap.OnMapClickListener { p0 ->
+        Log.d(TAG, "OnMapClickListener ${p0?.latitude} ${p0?.longitude}")
+
+        createMeetingPointMarker?.remove()
+        createMeetingPointMarker = addMarker("Ajouter un point de rassemblement", null, "create_meeting_point", p0!!, null, true)
     }
 
     override fun onMapReady(gMap: GoogleMap) {
@@ -433,13 +419,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
         }
 
         getTodaysTravel()
-        //this.mMap.addMarker(MarkerOptions().position(LatLng(latitude, longitude)).title("Current Location"))
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
         Log.d(TAG, "onMarkerClick")
-        if (marker.tag === "meetingpoint") {
-            displayMeetingPointCreateActivity()
+        println("marker = " + marker.tag.toString().split(" ")[0])
+        if (marker.tag === "create_meeting_point") {
+            displayMeetingPointCreateActivity(marker)
+        } else if (marker.tag.toString().split(" ")[0] == "show_meeting_point") {
+            displayMeetingPointShowActivity(marker)
         } else {
             displayLocalPlace(marker)
         }
@@ -484,14 +472,70 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*OnMyLocationButton
                     }
                 }
                 mLocationPermissionGranted = true;
-                getDeviceLocation()
                 mMap.isMyLocationEnabled = true
+                getDeviceLocation()
+
             }
         }
     }
 
-    fun displayMeetingPointCreateActivity() {
+    private fun displayMeetingPointCreateActivity(marker: Marker) {
+        Log.d(TAG, "displayMeetingPointCreateActivity")
+        val intent = Intent(context, CreateMeetingPointActivity::class.java)
+//        intent.putExtra("meetingPoing", user)
+        intent.putExtra("latlng", marker.position)
+        intent.putExtra("user", user)
+        intent.putExtra("token", token)
+        startActivityForResult(intent, 1)
+    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == 1) {
+            if(resultCode == 1) {
+                createMeetingPointMarker?.remove()
+                createMeetingPointMarker = null
+            } else if (resultCode == 0) {
+                createMeetingPointMarker?.showInfoWindow()
+            }
+        }
+    }
+
+    fun getMeetingPointsNow() {
+        Log.d(TAG, "getMeetingPointsNow")
+        MeetingPointHttp(ACTIVITY).getNow(group.id, object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                Log.d(TAG, "getMeetingPointsNow - onResponse")
+                meetingPointsList = Mapper().mapper(array)
+                Log.d("MEETING POINTS ARRAY", meetingPointsList.toString())
+                displayMeetingPoints()
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.d(TAG, "getMeetingPointsNow - onError")
+                Log.e(TAG, error.message)
+            }
+        })
+    }
+
+    fun displayMeetingPoints() {
+        removeMarkers(meetingPointMarkerList)
+
+        val bitmap = BitmapDescriptorFactory.fromResource(R.drawable.white_pushpin)
+
+        meetingPointsList.forEach {meetingPoint ->
+            val user = group.members.filter { it.id == meetingPoint.UserId }[0]
+            meetingPointMarkerList.add(addMarker(user.username, null, "show_meeting_point " + meetingPoint.id.toString(), LatLng(meetingPoint.coordinate_x.toDouble(), meetingPoint.coordinate_y.toDouble()), bitmap, true))
+        }
+
+    }
+
+    private fun displayMeetingPointShowActivity(marker: Marker) {
+        Log.d(TAG, "displayMeetingPointShowActivity")
+        val intent = Intent(context, ShowMeetingPointActivity::class.java)
+        val mp = meetingPointsList.filter { it.id == marker.tag.toString().split(" ")[1].toInt() }[0]
+        intent.putExtra("meetingpoint", mp)
+        intent.putExtra("user", group.members.filter { it.id == mp.UserId }[0])
+        startActivityForResult(intent, 2)
     }
 
     //CHAT FUNCTIONS

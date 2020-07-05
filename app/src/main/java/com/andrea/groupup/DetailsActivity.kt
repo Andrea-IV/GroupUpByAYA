@@ -31,6 +31,7 @@ class DetailsActivity : AppCompatActivity(){
 
         group = intent.getSerializableExtra("Group") as Group
         user = intent.getSerializableExtra("User") as User
+        user = group.members.filter { user.id == it.id }[0]
         token = intent.getStringExtra("Token")
 
         mViewPager = findViewById(R.id.mViewPager)

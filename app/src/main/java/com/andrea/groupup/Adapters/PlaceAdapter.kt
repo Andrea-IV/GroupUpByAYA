@@ -44,6 +44,8 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
 
         override fun onClick(v: View) {
             val context = itemView.context
+            println("PLACE = UWU")
+            println(place)
             val intent = Intent(context, PlaceActivity::class.java).apply {
                 putExtra(PLACE_STRING, place)
                 putExtra("TOKEN", token)
