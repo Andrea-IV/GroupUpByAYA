@@ -1,18 +1,21 @@
 package com.andrea.groupup
 
-import android.content.Context
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity;
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
 import com.google.gson.Gson
 import org.json.JSONObject
-import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -71,5 +74,189 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
+
+        findViewById<Button>(R.id.loginShow).setOnClickListener {
+            showLogin()
+        }
+
+        findViewById<Button>(R.id.login).setOnClickListener {
+            val username = findViewById<EditText>(R.id.usernameInput).text.toString()
+            val password = findViewById<EditText>(R.id.passwordInput).text.toString()
+            loginAction(username, password)
+        }
+
+        findViewById<Button>(R.id.createShow).setOnClickListener {
+            createShow()
+        }
+
+        findViewById<Button>(R.id.create).setOnClickListener {
+            createAction()
+        }
+
+        findViewById<ImageView>(R.id.returnButton).setOnClickListener {
+            returnMain()
+        }
+    }
+
+    private fun createAction(){
+        val emailInput = findViewById<EditText>(R.id.emailInput).text.toString()
+        val passwordInput = findViewById<EditText>(R.id.passwordInput).text.toString()
+        val passwordConfirmInput = findViewById<EditText>(R.id.passwordConfirmInput).text.toString()
+        val usernameInput = findViewById<EditText>(R.id.usernameInput).text.toString()
+
+        if(emailInput.isNotEmpty() && emailInput.isNotBlank() && passwordInput.isNotEmpty() && passwordInput.isNotBlank() && passwordConfirmInput.isNotEmpty() && passwordConfirmInput.isNotBlank() && usernameInput.isNotEmpty() && usernameInput.isNotBlank()){
+            if(passwordInput == passwordConfirmInput){
+                UserHttp(this).createUser(emailInput, usernameInput, passwordInput, passwordConfirmInput, object: VolleyCallback {
+                    override fun onResponse(jsonObject: JSONObject) {
+                        Log.d("USER", "getUser - onResponse")
+                        loginAction(usernameInput, passwordInput)
+                    }
+
+                    override fun onError(error: VolleyError) {
+                        Log.e("USER", "login - onError")
+                        Log.e("USER", error.javaClass.toString())
+                        findViewById<TextView>(R.id.error).text = getString(R.string.errorUsername)
+                        findViewById<TextView>(R.id.error).visibility = View.VISIBLE
+                    }
+                })
+            }else{
+                findViewById<TextView>(R.id.error).text = getString(R.string.errorSamePassword)
+                findViewById<TextView>(R.id.error).visibility = View.VISIBLE
+            }
+        }else{
+            findViewById<TextView>(R.id.error).text = getString(R.string.errorNotComplete)
+            findViewById<TextView>(R.id.error).visibility = View.VISIBLE
+        }
+    }
+
+    private fun createShow(){
+        findViewById<EditText>(R.id.emailInput).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.passwordInput).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.passwordConfirmInput).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.usernameInput).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.returnButton).visibility = View.VISIBLE
+        findViewById<Button>(R.id.create).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.error).visibility = View.GONE
+
+        val fadeOut = ValueAnimator.ofFloat(1f, 0f)
+        fadeOut.duration = 500
+        fadeOut.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<Button>(R.id.loginShow).alpha = alpha
+            findViewById<Button>(R.id.createShow).alpha = alpha
+        }
+
+        val fadeIn = ValueAnimator.ofFloat(0f, 1f)
+        fadeIn.duration = 500
+        fadeIn.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<EditText>(R.id.emailInput).alpha = alpha
+            findViewById<EditText>(R.id.passwordInput).alpha = alpha
+            findViewById<EditText>(R.id.passwordConfirmInput).alpha = alpha
+            findViewById<EditText>(R.id.usernameInput).alpha = alpha
+            findViewById<ImageView>(R.id.returnButton).alpha = alpha
+            findViewById<Button>(R.id.create).alpha = alpha
+        }
+
+        fadeOut.start()
+        findViewById<Button>(R.id.loginShow).visibility = View.GONE
+        findViewById<Button>(R.id.createShow).visibility = View.GONE
+
+
+        fadeIn.start()
+    }
+
+    private fun returnMain(){
+        findViewById<Button>(R.id.loginShow).visibility = View.VISIBLE
+        findViewById<Button>(R.id.createShow).visibility = View.VISIBLE
+
+        val fadeOut = ValueAnimator.ofFloat(1f, 0f)
+        fadeOut.duration = 500
+        fadeOut.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<EditText>(R.id.emailInput).alpha = alpha
+            findViewById<EditText>(R.id.passwordInput).alpha = alpha
+            findViewById<EditText>(R.id.passwordConfirmInput).alpha = alpha
+            findViewById<EditText>(R.id.usernameInput).alpha = alpha
+            findViewById<Button>(R.id.login).alpha = alpha
+            findViewById<Button>(R.id.create).alpha = alpha
+            findViewById<ImageView>(R.id.returnButton).alpha = alpha
+        }
+
+        val fadeIn = ValueAnimator.ofFloat(0f, 1f)
+        fadeIn.duration = 500
+        fadeIn.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<Button>(R.id.loginShow).alpha = alpha
+            findViewById<Button>(R.id.createShow).alpha = alpha
+        }
+
+        fadeOut.start()
+        findViewById<EditText>(R.id.emailInput).visibility = View.GONE
+        findViewById<EditText>(R.id.passwordInput).visibility = View.GONE
+        findViewById<EditText>(R.id.passwordConfirmInput).visibility = View.GONE
+        findViewById<EditText>(R.id.usernameInput).visibility = View.GONE
+        findViewById<Button>(R.id.login).visibility = View.GONE
+        findViewById<Button>(R.id.create).visibility = View.GONE
+        findViewById<ImageView>(R.id.returnButton).visibility = View.GONE
+        findViewById<TextView>(R.id.error).visibility = View.GONE
+
+
+        fadeIn.start()
+    }
+
+    private fun loginAction(username: String, password: String){
+        val intent = Intent(this, GroupActivity::class.java)
+        UserHttp(this).login(username, password, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("USER", "getUser - onResponse")
+
+                val gson = Gson()
+                val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
+                intent.putExtra("User", user)
+                var token = jsonObject.get("token").toString()
+                token = token.substring(token.indexOf(" ") + 1, token.length)
+                intent.putExtra("Token", token)
+                startActivity(intent)
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.javaClass.toString())
+            }
+        })
+    }
+
+    private fun showLogin(){
+        findViewById<EditText>(R.id.usernameInput).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.passwordInput).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.returnButton).visibility = View.VISIBLE
+        findViewById<Button>(R.id.login).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.error).visibility = View.GONE
+
+        val fadeOut = ValueAnimator.ofFloat(1f, 0f)
+        fadeOut.duration = 500
+        fadeOut.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<Button>(R.id.loginShow).alpha = alpha
+            findViewById<Button>(R.id.createShow).alpha = alpha
+        }
+
+        val fadeIn = ValueAnimator.ofFloat(0f, 1f)
+        fadeIn.duration = 500
+        fadeIn.addUpdateListener { animation ->
+            val alpha = animation.animatedValue as Float
+            findViewById<EditText>(R.id.usernameInput).alpha = alpha
+            findViewById<EditText>(R.id.passwordInput).alpha = alpha
+            findViewById<Button>(R.id.login).alpha = alpha
+            findViewById<ImageView>(R.id.returnButton).alpha = alpha
+        }
+
+        fadeOut.start()
+        findViewById<Button>(R.id.loginShow).visibility = View.GONE
+        findViewById<Button>(R.id.createShow).visibility = View.GONE
+        findViewById<EditText>(R.id.passwordConfirmInput).visibility = View.GONE
+
+        fadeIn.start()
     }
 }

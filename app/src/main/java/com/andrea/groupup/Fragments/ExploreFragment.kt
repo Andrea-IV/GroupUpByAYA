@@ -20,9 +20,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.andrea.groupup.Adapters.PlaceAdapter
+import com.andrea.groupup.CreatePlaceActivity
 import com.andrea.groupup.Http.LocalPlaceHttp
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.VolleyCallbackArray
+import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.LocalPlace
 import com.andrea.groupup.Models.Place
 import com.andrea.groupup.R
@@ -48,10 +50,10 @@ class ExploreFragment : BaseFragment() {
     private var listItems = arrayListOf<LocalPlace>()
     private var allListItems = arrayListOf<LocalPlace>()
     private lateinit var searchView: SearchView
+    private val ctx: ExploreFragment = this
 
-    private var position: Location? = null
-    private var mLocationPermissionGranted = false;
     lateinit var token: String
+    lateinit var group: Group
     lateinit var mView: View
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -60,6 +62,7 @@ class ExploreFragment : BaseFragment() {
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_explore, container, false)
 
+        group = ACTIVITY.group
         token = ACTIVITY.token
 
         getDeviceLocation()
@@ -70,6 +73,13 @@ class ExploreFragment : BaseFragment() {
         }
 
         return mView
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        allListItems.clear()
+        listItems.clear()
+        getDeviceLocation()
     }
 
     private fun initMenu(it: View){
@@ -104,6 +114,13 @@ class ExploreFragment : BaseFragment() {
                     adapter.notifyDataSetChanged()
                     true
                 }
+                R.id.create -> {
+                    val intent = Intent(context, CreatePlaceActivity::class.java)
+                    intent.putExtra("USER", ACTIVITY.user)
+                    intent.putExtra("TOKEN", token)
+                    this.startActivity(intent)
+                    true
+                }
                 else -> false
             }
         }
@@ -131,7 +148,7 @@ class ExploreFragment : BaseFragment() {
                 override fun onResponse(array: JSONArray) {
                     Log.d("LOCALPLACE", array.toString())
                     val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                    for(localPlace in lpRes.asReversed()) {
+                    for(localPlace in lpRes) {
                         listItems.add(localPlace)
                         allListItems.add(localPlace)
                     }
@@ -141,7 +158,7 @@ class ExploreFragment : BaseFragment() {
                     val recyclerView: RecyclerView = mView.findViewById(R.id.recyclerView)
                     recyclerView.layoutManager = layoutManager
 
-                    adapter = PlaceAdapter(listItems, token, layoutManager, requireContext())
+                    adapter = PlaceAdapter(listItems, token, group, ACTIVITY.user, layoutManager, requireContext(), ctx)
                     recyclerView.adapter = adapter
                 }
 

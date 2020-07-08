@@ -1,42 +1,47 @@
 package com.andrea.groupup
 
-import android.content.Intent
+
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import com.andrea.groupup.Adapters.SelectedAdapter
-import com.andrea.groupup.Models.Place
+import com.andrea.groupup.Models.EventDisplay
+import com.andrea.groupup.Models.Group
+import com.andrea.groupup.Models.User
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class EventActivity : AppCompatActivity() {
 
+    private lateinit var token: String
+    private lateinit var user: User
+    private lateinit var group: Group
+    private lateinit var eventDisplay: EventDisplay
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_event)
-        val listItems = arrayListOf<Place>()
 
-        for (i in 0 until 10) {
-            listItems.add(
-                Place(i, "Gundam Statue", "Paris, France","Lorem ipsum dolor sit amet, \n" +
-                        "consectetur adipiscing elit, sed do\n" +
-                        "eiusmod tempor incididunt ut labore \n" +
-                        "et dolore magna aliqua. Ut enim ad\n" +
-                        "minim veniam, quis nostrud \n" +
-                        "exercitation ullamco laboris nisi ut \n" +
-                        "aliquip ex ea commodo consequat. \n" +
-                        "Duis aute irure dolor in reprehenderit\n" +
-                        "in voluptate velit esse cillum dolore\n" +
-                        " eu fugiat nulla pariatur.", 4.5,i)
-            )
-        }
+        token = intent.getStringExtra("TOKEN")
+        group = intent.getSerializableExtra("GROUP") as Group
+        user = intent.getSerializableExtra("USER") as User
+        eventDisplay = intent.getSerializableExtra("EVENTDISPLAY") as EventDisplay
 
-        val adapter = SelectedAdapter(listItems, this)
+        val adapter = SelectedAdapter(eventDisplay.users, user, group, token, eventDisplay.events,this)
         val listView: ListView = findViewById(R.id.listOfSelected)
-        findViewById<TextView>(R.id.date).text = "19 Mai"
         listView.adapter = adapter
+
+        Log.d("PLACE2", eventDisplay.events.toString())
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val date = LocalDate.parse(eventDisplay.date, formatter)
+        val finalFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+        findViewById<TextView>(R.id.date).text = date.format(finalFormatter).toString()
 
         findViewById<ImageButton>(R.id.back).setOnClickListener {
             finish()

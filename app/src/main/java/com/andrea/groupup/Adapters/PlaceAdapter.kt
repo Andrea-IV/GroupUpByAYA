@@ -1,5 +1,6 @@
 package com.andrea.groupup.Adapters
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
@@ -10,7 +11,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.andrea.groupup.Constants
+import com.andrea.groupup.Fragments.ExploreFragment
+import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.LocalPlace
+import com.andrea.groupup.Models.User
 import com.andrea.groupup.PlaceActivity
 import com.andrea.groupup.R
 import com.squareup.picasso.Picasso
@@ -18,13 +22,13 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 const val PLACE_STRING = "PLACE"
-class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String, var layoutManager: StaggeredGridLayoutManager, private val ctx: Context) : RecyclerView.Adapter<PlaceAdapter.PlaceHolder>()  {
+class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String, val group: Group, val user:User, var layoutManager: StaggeredGridLayoutManager, private val ctx: Context, val frag: ExploreFragment) : RecyclerView.Adapter<PlaceAdapter.PlaceHolder>()  {
 
     var arrayList = places
     var tempList = ArrayList(arrayList)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceHolder {
-        return PlaceHolder(LayoutInflater.from(ctx).inflate(R.layout.list_of_places, parent, false), token)
+        return PlaceHolder(LayoutInflater.from(ctx).inflate(R.layout.list_of_places, parent, false), token, group, user, frag)
     }
 
     override fun getItemCount() = places.size
@@ -34,7 +38,7 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
         holder.bindPlace(itemPlace, layoutManager, this)
     }
 
-    class PlaceHolder(v: View, val token: String) : RecyclerView.ViewHolder(v), View.OnClickListener {
+    class PlaceHolder(v: View, val token: String, val group: Group, val user: User, val frag: ExploreFragment) : RecyclerView.ViewHolder(v), View.OnClickListener {
         private var view: View = v
         private var place: LocalPlace? = null
 
@@ -46,9 +50,11 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
             val context = itemView.context
             val intent = Intent(context, PlaceActivity::class.java).apply {
                 putExtra(PLACE_STRING, place)
+                putExtra("GROUP", group)
+                putExtra("USER", user)
                 putExtra("TOKEN", token)
             }
-            context.startActivity(intent)
+            frag.startActivityForResult(intent, 0);
 
         }
 

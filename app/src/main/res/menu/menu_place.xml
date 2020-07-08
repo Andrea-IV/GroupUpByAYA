@@ -5,6 +5,10 @@
             android:title="@string/add_photo"
             android:icon="@drawable/ic_add_a_photo_primary"/>
     <item
+            android:id="@+id/event"
+            android:title="@string/add_event"
+            android:icon="@drawable/ic_event_available_primary"/>
+    <item
             android:id="@+id/tag"
             android:title="@string/add_tag"
             android:icon="@drawable/ic_tag_primary"/>

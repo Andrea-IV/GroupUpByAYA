@@ -47,7 +47,28 @@
     <string name="menu_short">\> 2 km</string>
     <string name="menu_mid">\> 10 km</string>
     <string name="menu_long">Show All</string>
+    <string name="create_place">Create new place</string>
+    <string name="title_hint">Enter the name</string>
+    <string name="adress_hint">Enter the address</string>
+    <string name="description_hint">Enter the description</string>
+    <string name="rating_hint">Enter your rating</string>
+    <string name="plan_name">\'s Plan</string>
+    <string name="create_plan">Add to an Event</string>
+    <string name="add_event">Add Event</string>
+    <string name="no_rating">No rating</string>
+    <string name="add_rating">Add Rating</string>
+    <string name="dog_tag">Enter the Tag to add</string>
+    <string name="create_tag">Add Tag</string>
+    <string name="login_show">Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="errorSamePassword">Not Same password Inputted</string>
+    <string name="errorNotComplete">Every field needs to be completed</string>
+    <string name="errorUsername">Username is already taken</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="password_confirm_hint">Confirm Password</string>
+    <string name="username_hint">Username</string>
 </resources>

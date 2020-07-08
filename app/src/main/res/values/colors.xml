@@ -10,4 +10,6 @@
     <color name="mapBlue">#76C7CE</color>
     <color name="shadedText">#A7ACAE</color>
     <color name="selectedShadedText">#95C4CB</color>
+    <color name="foggyNight">#CD161718</color>
+    <color name="foggy">#4AFFFFFF</color>
 </resources>

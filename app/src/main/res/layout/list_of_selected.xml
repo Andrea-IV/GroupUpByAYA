@@ -3,18 +3,18 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:background="@drawable/event_shape">
+        android:layout_width="match_parent" android:layout_height="100dp"
+        android:background="@android:color/white">
 
     <ImageView
             android:id="@+id/image"
-            android:layout_width="100dp"
-            android:layout_height="150dp"
-            android:foreground="@drawable/shape_selected"
+            android:layout_width="75dp"
+            android:layout_height="100dp"
             android:scaleType="centerCrop"
             android:src="@drawable/place_example"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
             android:id="@+id/title"
@@ -40,27 +40,6 @@
             app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <ImageView
-            android:id="@+id/imageView7"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/geo"
-            app:layout_constraintStart_toEndOf="@id/image"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
-
-    <TextView
-            android:id="@+id/location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
-            android:layout_marginTop="10dp"
-            android:textColor="@color/colorPrimary"
-            android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@+id/imageView7"
-            app:layout_constraintTop_toBottomOf="@+id/view" />
-
-    <ImageView
             android:id="@+id/imageView3"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -68,7 +47,7 @@
             android:layout_marginTop="10dp"
             android:src="@drawable/star"
             app:layout_constraintStart_toEndOf="@+id/image"
-            app:layout_constraintTop_toBottomOf="@+id/imageView7" />
+            app:layout_constraintTop_toBottomOf="@+id/view" />
 
     <TextView
             android:id="@+id/rating"
@@ -79,17 +58,15 @@
             android:textColor="@android:color/black"
             android:textSize="18sp"
             app:layout_constraintStart_toEndOf="@+id/imageView3"
-            app:layout_constraintTop_toBottomOf="@+id/location" />
+            app:layout_constraintTop_toBottomOf="@+id/view" />
 
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
+    <ImageView
+            android:id="@+id/deletePlan"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginTop="10dp"
-            android:textSize="18sp"
-            android:textColor="@color/shadedText"
-            android:text="Art, Museum, Sculture..."
-            app:layout_constraintStart_toEndOf="@+id/image"
-            app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+            android:src="@drawable/ic_close_red"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

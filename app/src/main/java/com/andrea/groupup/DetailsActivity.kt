@@ -1,14 +1,13 @@
 package com.andrea.groupup
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.ViewPager
 import com.andrea.groupup.Adapters.PagerViewAdapter
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
-import com.google.gson.Gson
 
 class DetailsActivity : AppCompatActivity(){
 

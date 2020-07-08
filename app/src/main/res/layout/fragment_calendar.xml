@@ -22,14 +22,6 @@
                     android:textSize="20sp"
                     android:textColor="@android:color/black"
                     android:text="@string/schedule_title"/>
-            <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="5dp"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="5dp"
-                    android:background="@android:color/white"
-                    android:src="@drawable/ic_expand_more_black"/>
         </LinearLayout>
 
         <CalendarView
