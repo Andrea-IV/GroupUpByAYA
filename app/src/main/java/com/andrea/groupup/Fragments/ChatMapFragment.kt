@@ -207,11 +207,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             }
 
             override fun onOpenFailure(ex: java.lang.Exception) {
-                System.err.println("sauce"+ex)
+                System.err.println(ex)
             }
 
             override fun onFailure(ex: java.lang.Exception) {
-                System.err.println("sauce"+ex)
+                System.err.println(ex)
             }
 
             override fun onClosed(reason: String) {
@@ -895,12 +895,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         mapFragment.view?.bringToFront()
         view?.myChatButton?.setImageResource(R.drawable.chat);
         onMap = false
+        relativeChatLayout?.setVisibility(View.VISIBLE)
+        chat?.setVisibility(View.VISIBLE)
+
     }
 
     private fun bringMap(){
         mapFragment.view?.layoutParams =   ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
         mapFragment.view?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chat?.setBackgroundColor(Color.parseColor("#90FFFFFF"))
+
         chatTextLayout?.visibility = View.GONE
         chat?.layoutParams = chatlayoutparams
         mapFragment.view?.alpha = 1f
@@ -909,6 +913,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         view?.myChatButton?.show()
         chat?.bringToFront()
         onMap = true
+        relativeChatLayout?.setVisibility(View.GONE)
+        chat?.setVisibility(View.GONE)
     }
 
 
