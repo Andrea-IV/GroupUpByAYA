@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -61,7 +62,9 @@
         <activity
             android:name=".FriendsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ChatActivity" />
+<!--        <activity android:name=".ChatActivity" />-->
+        <receiver android:name=".StopSharingPositionReceiver" />
+        <service android:process=":myProcess" android:name=".SharePositionService" />
     </application>
 
 </manifest>

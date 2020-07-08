@@ -1,55 +1,53 @@
 package com.andrea.groupup.Fragments
 
 import android.Manifest
-import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.app.*
+import android.content.*
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.location.Location
 import android.location.LocationManager
+import android.opengl.Visibility
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
+import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
+import com.andrea.groupup.*
 import com.andrea.groupup.Adapters.MessageAdapter
-import com.andrea.groupup.Adapters.PLACE_STRING
-import com.andrea.groupup.CreateMeetingPointActivity
 import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
-import com.andrea.groupup.Http.TravelHttp
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
-import com.andrea.groupup.Models.Group
-import com.andrea.groupup.Models.LocalPlace
-import com.andrea.groupup.Models.MemberData
 import com.andrea.groupup.Models.Message
-import com.andrea.groupup.Models.Travel
-import com.andrea.groupup.Models.User
-import com.andrea.groupup.PlaceActivity
+import com.andrea.groupup.Models.Notification
 import com.andrea.groupup.R
-import com.andrea.groupup.ShowMeetingPointActivity
 import com.android.volley.VolleyError
+import com.beust.klaxon.json
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.common.api.*
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.karumi.dexter.Dexter
@@ -57,17 +55,14 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import com.karumi.dexter.listener.single.PermissionListener
-import com.scaledrone.lib.Listener
-import com.scaledrone.lib.Room
-import com.scaledrone.lib.RoomListener
-import com.scaledrone.lib.Scaledrone
 import com.scaledrone.lib.*
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * A simple [Fragment] subclass.
@@ -99,17 +94,27 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     private var actualPolyline: Polyline? = null
     private var isTravelDisplayed = true
     private var createMeetingPointMarker: Marker? = null
-    private lateinit var meetingPointsHandler: Handler
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
 
-//    private val checkClockForMeetingPoints = object: Runnable {
-//        override fun run() {
-//            displayMeetingPoints()
-//            meetingPointsHandler.postDelayed(this, 60000) // every minutes
-//        }
-//    }
+    private lateinit var sharePositionHandler: Handler
+    private val checkPositionShareStateRunnable =  object: Runnable {
+        override fun run() {
+            checkUserPositionShareState()
+            sharePositionHandler.postDelayed(this, 1000)
+        }
+    }
 
+    private lateinit var friendsLocationHandler: Handler
+    private val getFriendsLocationRunnable = object: Runnable {
+        override fun run() {
+            getFriendsLocation()
+            friendsLocationHandler.postDelayed(this, 1000)
+        }
+
+    }
+
+    private lateinit var shareLocationButton: ImageButton
     //chat variables
     private lateinit var onMapChatButton: ImageButton;
     private lateinit var sendMessage: ImageButton;
@@ -132,12 +137,43 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     private var onLittleMap: Boolean = true
     private var isHistory: Boolean = false
 
+    private lateinit var preferences: SharedPreferences
+    private lateinit var edit: SharedPreferences.Editor
+
+    private lateinit var serviceIntent: Intent
+
+    private var friendsBitmap = HashMap<Int, Bitmap?>()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
      ): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
+
+        group = ACTIVITY.group
+        user = ACTIVITY.user
+        token = ACTIVITY.token
+
+        group.members.forEach {
+            Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
+            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
+                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                    // loaded bitmap is here (bitmap)
+                    Log.d(TAG, "onBitmapLoaded -> ${it.username}")
+                    friendsBitmap[it.id] = bitmap
+                }
+
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                    Log.d(TAG, "onBitmapFailed -> ${it.username}")
+                }
+            })
+        }
+
+        preferences = ACTIVITY.getSharedPreferences("groupup", Context.MODE_PRIVATE)
+        edit = preferences.edit()
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -147,7 +183,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         onMapChatButton = view.onMapChatButton
         sendMessage = view.sendMessage
         mapHideButton = view.mapHideButton
-
+        shareLocationButton = view.findViewById(R.id.shareLocationButton)
 
         chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
         relativeChatLayout = view.findViewById(R.id.relativeChatLayout) as RelativeLayout
@@ -238,32 +274,136 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             bringChat()
         }
 
-        group = ACTIVITY.group
-        user = ACTIVITY.user
-        token = ACTIVITY.token
+        shareLocationButton.setOnClickListener {
+            Log.d(TAG, "issharing = " + preferences.getBoolean("isSharing", false).toString())
+            if (!preferences.getBoolean("isSharing", false)) {
+                edit.putBoolean("isSharing", true)
+                edit.apply()
+                serviceIntent = Intent(ACTIVITY, SharePositionService::class.java)
+                serviceIntent.putExtra("groupId", group.id)
+                serviceIntent.putExtra("groupName", group.name)
+                serviceIntent.putExtra("user", user)
+                serviceIntent.putExtra("token", token)
+                ACTIVITY.startService(serviceIntent)
+            } else {
+                if(this::serviceIntent.isInitialized)
+                    ACTIVITY.stopService(serviceIntent)
+                edit.putBoolean("isSharing", false)
+                edit.apply()
+            }
+        }
 
-//        meetingPointsHandler = Handler(Looper.getMainLooper())
+        if(checkGps()) {
+            shareLocationButton.visibility = View.VISIBLE
+        }
+
+
+        sharePositionHandler = Handler(Looper.getMainLooper())
+        sharePositionHandler.post(checkPositionShareStateRunnable)
+        friendsLocationHandler = Handler(Looper.getMainLooper())
+        friendsLocationHandler.post(getFriendsLocationRunnable)
         return view
     }
+
+    private fun getFriendsLocation() {
+        Log.d(TAG, "getFriendsLocation")
+        GroupHttp(ACTIVITY)
+            .getById(group.id, object: VolleyCallback {
+                override fun onResponse(jsonObject: JSONObject) {
+                    Log.d(TAG, "getFriendsLocation - onResponse")
+                    group = Mapper().mapper(jsonObject)
+                    displayFriendsLocation()
+                }
+
+                override fun onError(error: VolleyError) {
+                    Log.d(TAG, "getFriendsLocation - onError")
+                    Log.e(TAG, error.toString())
+                }
+
+            })
+    }
+
+
+    private var friendsMarker = ArrayList<Marker>()
+    private fun displayFriendsLocation() {
+//        removeMarkers(friendsMarker)
+        group.members.forEach {
+            if(it.id != user.id && it.UserGroup.is_sharing_pos) {
+                var bDesc: BitmapDescriptor? = null
+                if (friendsBitmap[it.id] != null) {
+                    bDesc = BitmapDescriptorFactory.fromBitmap(friendsBitmap[it.id])
+                }
+                val fm = getFriendMarker(it.username)
+                if(fm !== null) {
+                    fm.position = LatLng(it.UserGroup.coordinate_x.toDouble(), it.UserGroup.coordinate_y.toDouble())
+                    fm.setIcon(bDesc)
+                } else {
+                    friendsMarker.add(
+                        addMarker(
+                            it.username,
+                            null,
+                            "friend " + it.id,
+                            LatLng(
+                                it.UserGroup.coordinate_x.toDouble(),
+                                it.UserGroup.coordinate_y.toDouble()
+                            ),
+                            bDesc,
+                            false
+                        )
+                    )
+                }
+            } else {
+                removeFriendMarker(it.username)
+            }
+        }
+    }
+
+    private fun getFriendMarker(username: String): Marker? {
+        friendsMarker.forEach {
+            if(it.title == username)
+                return it
+        }
+
+        return null
+    }
+
+    private fun removeFriendMarker(username: String) {
+        friendsMarker.forEach {
+            if(it.title == username)
+                it.remove()
+        }
+    }
+
+    private fun checkUserPositionShareState() {
+        Log.d(TAG, "checkUserPositionShareState")
+        Log.d(TAG, preferences.getBoolean("isSharing", false).toString())
+        if(preferences.getBoolean("isSharing", false)) {
+            DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
+        } else {
+            DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), Color.parseColor("#FFFFFF"))
+            sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
+        }
+    }
+
 
     override fun onPermissionRationaleShouldBeShown(permissions: MutableList<PermissionRequest>, token: PermissionToken) {
         Log.d(TAG, "onPermissionRationaleShouldBeShown")
         // This method will be called when the user rejects a permission request
         // You must display a dialog box that explains to the user why the application needs this permission
-        val dialog = AlertDialog
-            .Builder(this.context)
-            .setTitle("Gps permission error")
-            .setMessage("Please go to your application settings and allow location share so you can share your location with your friends !")
-            .setCancelable(false)
-            .setNegativeButton("Refuse") { dialog, which ->
+        createDialolg(
+            "Gps permission error",
+            "Please go to your application settings and allow location share so you can share your location with your friends !",
+            "Accept",
+            DialogInterface.OnClickListener { dialog, which ->
                 dialog.dismiss()
-                token?.cancelPermissionRequest()
-            }
-            .setPositiveButton("Accept") { dialog, which ->
+                token.continuePermissionRequest()
+            },
+            "Refuse",
+            DialogInterface.OnClickListener { dialog, which ->
                 dialog.dismiss()
-                token?.continuePermissionRequest()
+                token.cancelPermissionRequest()
             }
-            .show()
+        )
     }
 
     override fun onPermissionsChecked(report: MultiplePermissionsReport) {
@@ -271,20 +411,49 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         // Here you have to check granted permissions
         if (report.areAllPermissionsGranted()) {
             mMap.isMyLocationEnabled = true
-            getDeviceLocation()
+            checkLocationEnabled()
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        context?.registerReceiver(gpsBroadcastReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+    }
     override fun onPause() {
         super.onPause()
 //        meetingPointsHandler.removeCallbacks(checkClockForMeetingPoints)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        context?.unregisterReceiver(gpsBroadcastReceiver)
     }
 
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
 //        meetingPointsHandler.post(checkClockForMeetingPoints)
+        if(checkGps()) getDeviceLocation()
         getMeetingPointsNow()
+    }
+
+    private val gpsBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(contxt: Context?, intent: Intent?) {
+            Log.d(TAG, "gpsBroadcastReceiver")
+            Log.d("INTENT", intent?.action)
+            when(intent?.action) {
+                "android.location.PROVIDERS_CHANGED" -> {
+                    Log.d("INTENT2", "uwu")
+                    if(checkGps()) {
+                        Log.d(TAG, "gpsBroadcastReceiver - onReceive - gps enabled")
+                        shareLocationButton.visibility = View.VISIBLE
+                    } else {
+                        Log.d(TAG, "gpsBroadcastReceiver - onReceive - gps disabled")
+                        shareLocationButton.visibility = View.GONE
+                    }
+                }
+            }
+        }
     }
 
     private fun getTodaysTravel() {
@@ -340,19 +509,71 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         actualPolyline = mMap.addPolyline(polylineOption)
     }
 
+    private fun checkLocationEnabled() {
+        if(checkGps()) {
+            shareLocationButton.visibility = View.VISIBLE
+            getDeviceLocation()
+        } else {
+            createDialolg(
+                "Gps network is not enabled",
+                "Please turn on gps sor you can ",
+                "Open location settings",
+                DialogInterface.OnClickListener { _, _ ->
+                    startActivityForResult(Intent(ACTION_LOCATION_SOURCE_SETTINGS), 2);
+                },
+                "Cancel",
+                null
+            )
+        }
+    }
+
+    private fun createDialolg(title: String, message: String, positive: String, positiveClick: DialogInterface.OnClickListener?, negative: String, negativeClick: DialogInterface.OnClickListener?) {
+        AlertDialog
+            .Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton(positive, positiveClick)
+            .setNegativeButton(negative, negativeClick)
+            .show()
+    }
     private fun getDeviceLocation() {
+        Log.d(TAG, "getDeviceLocation")
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
-        mFusedLocationProviderClient.lastLocation.addOnCompleteListener {
-            if(it.isSuccessful) {
-                Log.d(TAG, "onComplete: found location")
-                val current = it.result
-                if(current !== null)
-                    moveCamera(LatLng(current.latitude, current.longitude), 9.5f);
-            } else {
-                Log.d(TAG, "onComplete: location not found")
-                Toast.makeText(this.activity, "Can't get your current location", Toast.LENGTH_SHORT).show()
+        mFusedLocationProviderClient.locationAvailability.addOnSuccessListener {
+            Log.d(TAG, "onSuccess: found location")
+            val current = it
+            if (current !== null) {
+                if (current.isLocationAvailable) {
+                    mFusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                        moveCamera(LatLng(it.latitude, it.longitude), 9.5f)
+                    }
+                } else {
+                    checkLocationEnabled()
+                }
             }
         }
+    }
+
+    private fun getLocationAvailability(callback: Task<LocationAvailability>) {
+
+    }
+
+    private fun checkGps(): Boolean {
+        Log.d(TAG, "checkGps")
+        val lm = ACTIVITY.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var gps_enabled = false;
+        var network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(e: Exception) {}
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(e: Exception) {}
+
+        return gps_enabled && network_enabled
     }
 
 //    private fun checkGps(): Boolean {
@@ -493,10 +714,12 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     override fun onMarkerClick(marker: Marker): Boolean {
         Log.d(TAG, "onMarkerClick")
         println("marker = " + marker.tag.toString().split(" ")[0])
-        if (marker.tag === "create_meeting_point") {
+        if (marker.tag == "create_meeting_point") {
             displayMeetingPointCreateActivity(marker)
         } else if (marker.tag.toString().split(" ")[0] == "show_meeting_point") {
             displayMeetingPointShowActivity(marker)
+        } else if (marker.tag.toString().split(" ")[0] == "friend") {
+            marker.showInfoWindow()
         } else {
             displayLocalPlace(marker)
         }
@@ -559,13 +782,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if(requestCode == 1) {
-            if(resultCode == 1) {
-                createMeetingPointMarker?.remove()
-                createMeetingPointMarker = null
-                sendNotifications("Meeting notification", "Your friend " + user.username + " asks you to join him !", null)
-            } else if (resultCode == 0) {
-                createMeetingPointMarker?.showInfoWindow()
+        when(requestCode) {
+            1 -> {
+                Log.d(TAG, "onActivityResult - 1")
+                if(resultCode == 1) {
+                    createMeetingPointMarker?.remove()
+                    createMeetingPointMarker = null
+                    sendNotifications("Meeting notification", "Your friend " + user.username + " asks you to join him !", null)
+                } else if (resultCode == 0) {
+                    createMeetingPointMarker?.showInfoWindow()
+                }
             }
         }
     }
@@ -608,7 +834,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         val creator = group.members.filter { it.id == mp.UserId }[0]
         intent.putExtra("user", creator)
         intent.putExtra("creator", creator.id == user.id)
-        startActivityForResult(intent, 2)
+        startActivity(intent)
     }
 
     //CHAT FUNCTIONS
@@ -744,11 +970,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             token,
             object : VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
-                    Log.d(TAG, "onActivityResult - NotificationHttp - onResponse")
+                    Log.d(TAG, "sendNotifications - NotificationHttp - onResponse")
                 }
 
                 override fun onError(error: VolleyError) {
-                    Log.d(TAG, "onActivityResult - NotificationHttp - onError")
+                    Log.d(TAG, "sendNotifications - NotificationHttp - onError")
                     Log.e(TAG, error.toString())
                 }
 

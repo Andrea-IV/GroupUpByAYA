@@ -96,6 +96,21 @@ class Http {
         queue.add(request)
     }
 
+    fun putWithTokenObject(url: String, params: JSONObject, token: String, callback: VolleyCallback) {
+        val request = object : JsonObjectRequest(Request.Method.PUT, url, params,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers.put("Content-Type", "application/json")
+                headers.put("Authorization", "Bearer $token")
+                return headers
+            }
+        }
+
+        queue.add(request)
+    }
+
     fun putWithToken(url: String, callback: VolleyCallbackArray, tokenCode: String): Unit {
         val request = object : JsonArrayRequest(Request.Method.PUT, url, null,
             { response -> run { callback.onResponse(response)} },

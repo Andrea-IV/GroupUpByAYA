@@ -30,4 +30,20 @@ class GroupHttp(val context: Context)  {
     fun kickGroup(idGroup: String, idUser: String, token: String, volleyCallback: VolleyCallback){
         http.deleteWithToken("$URL/$idGroup/kick/$idUser", volleyCallback, token)
     }
+
+    fun shareUserPositionStart(groupId: Int, lat: Double, lng: Double, token: String, volleyCallback: VolleyCallback) {
+        http.putWithTokenObject("$URL/positionSharing/update", JSONObject("{groupId:$groupId, latitude:$lat, longitude:$lng}"), token, volleyCallback)
+    }
+
+    fun shareUserPositionStop(groupId: Int, token: String, volleyCallback: VolleyCallback) {
+        http.putWithTokenObject("$URL/positionSharing/stop", JSONObject("{groupId:$groupId}"), token, volleyCallback)
+    }
+
+//    fun getFriendsLocation(groupId: Int, token: String, volleyCallbackArray: VolleyCallbackArray) {
+//        http.getAllWithToken("$URL/$groupId/positionSharing/friends", token, volleyCallbackArray)
+//    }
+
+    fun getById(groupId: Int, volleyCallback: VolleyCallback) {
+        http.getOne("$URL/$groupId", volleyCallback)
+    }
 }
