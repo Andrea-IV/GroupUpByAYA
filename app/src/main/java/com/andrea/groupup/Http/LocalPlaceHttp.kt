@@ -27,8 +27,8 @@ class LocalPlaceHttp (val context: Context) {
         http.getAllWithToken("$URL/trad/$language?pos_x=$posx&pos_y=$posy", token, volleyCallbackArray)
     }
 
-    fun getByLatLng(lat: String, lng: String, volleyCallbackArray: VolleyCallbackArray) {
-        http.getAll("$URL/lat/$lat/lng/$lng", volleyCallbackArray)
+    fun getByLatLngAndTrad(lat: String, lng: String, lang: String, volleyCallbackArray: VolleyCallbackArray) {
+        http.getAll("$URL/lat/$lat/lng/$lng/trad/$lang", volleyCallbackArray)
     }
 
     fun createPlace(place: LocalPlace, token: String, volleyCallback: VolleyCallback){

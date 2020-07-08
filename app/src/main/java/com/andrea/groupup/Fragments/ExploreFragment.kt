@@ -169,13 +169,13 @@ class ExploreFragment : BaseFragment() {
         }else{
             LocalPlaceHttp(this.requireContext()).getAllWithTrad(Locale.getDefault().language, token, object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
-                    Log.d("LOCALPLACE", array.toString())
-                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                    for(localPlace in lpRes.asReversed()) {
-                        listItems.add(localPlace)
-                    }
-
-                    adapter.notifyDataSetChanged()
+//                    Log.d("LOCALPLACE", array.toString())
+//                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
+//                    for(localPlace in lpRes.asReversed()) {
+//                        listItems.add(localPlace)
+//                    }
+//
+//                    adapter.notifyDataSetChanged()
                 }
 
                 override fun onError(error: VolleyError): Unit {

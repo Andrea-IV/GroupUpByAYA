@@ -12,4 +12,6 @@
     <color name="selectedShadedText">#95C4CB</color>
     <color name="foggyNight">#CD161718</color>
     <color name="foggy">#4AFFFFFF</color>
+    <color name="map_button_color">#FFFFFF</color>
+    <color name="sharePositionButtonStart">#FFBAF1A2</color>
 </resources>

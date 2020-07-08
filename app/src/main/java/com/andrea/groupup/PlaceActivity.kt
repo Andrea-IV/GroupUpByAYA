@@ -12,6 +12,10 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -32,7 +36,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
-
 class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegate {
     private var actualPhotoIndex: Int = 0
     private val REQUEST_CODE = 100
@@ -41,6 +44,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private lateinit var user: User
     private lateinit var token: String
     private lateinit var adapter: TagAdapter
+    private var from: String? = null
 
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var storagePermissionGranted = false
@@ -56,6 +60,11 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         localPlace = intent.getSerializableExtra("PLACE") as LocalPlace
         group = intent.getSerializableExtra("GROUP") as Group
         user = intent.getSerializableExtra("USER") as User
+        from = intent.getStringExtra("FROM")
+
+        if("map".equals(from)) {
+            findViewById<Button>(R.id.button2).visibility = View.GONE
+        }
 
         if(!localPlace.Photos.isNullOrEmpty()){
             Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))

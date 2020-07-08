@@ -4,6 +4,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
     <string name="group_title">Your groups</string>
+    <string name="create_meeting_point_title">Meeting</string>
     <string name="explore_title">Explore</string>
     <string name="schedule_title">Schedule</string>
     <string name="user_title">Grouped Up</string>
@@ -66,9 +67,24 @@
     <string name="errorSamePassword">Not Same password Inputted</string>
     <string name="errorNotComplete">Every field needs to be completed</string>
     <string name="errorUsername">Username is already taken</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="password_confirm_hint">Confirm Password</string>
     <string name="username_hint">Username</string>
+    <string name="chat_channel">xFOd3Tqsb25TmL2e</string>
+    <string name="title_activity_create_meeting_point">CreateMeetingPointActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string-array name="meeting_point_spinner">
+        <item>30min</item>
+        <item>1h</item>
+        <item>1h30</item>
+        <item>2h</item>
+    </string-array>
 </resources>

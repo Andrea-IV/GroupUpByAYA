@@ -56,6 +56,22 @@ class Http {
         queue.add(request)
     }
 
+    fun getOneWithToken(url: String, tokenCode: String, callback: VolleyCallback) {
+        val request = object: JsonObjectRequest(Request.Method.GET, url, null,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }
+        ) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/json"
+                headers["Authorization"] = "Bearer $tokenCode"
+                return headers
+            }
+        }
+
+        queue.add(request)
+    }
+
     fun post(url: String, callback: VolleyCallback, params: JSONObject): Unit {
         val request = JsonObjectRequest(Request.Method.POST, url, params,
             { response -> run { callback.onResponse(response)} },
@@ -73,6 +89,21 @@ class Http {
                 val headers = HashMap<String, String>()
                 headers.put("Content-Type", "application/json")
                 headers.put("Authorization", "Bearer $tokenCode")
+                return headers
+            }
+        }
+
+        queue.add(request)
+    }
+
+    fun putWithTokenObject(url: String, params: JSONObject, token: String, callback: VolleyCallback) {
+        val request = object : JsonObjectRequest(Request.Method.PUT, url, params,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers.put("Content-Type", "application/json")
+                headers.put("Authorization", "Bearer $token")
                 return headers
             }
         }
