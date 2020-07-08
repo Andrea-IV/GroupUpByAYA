@@ -576,36 +576,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         return gps_enabled && network_enabled
     }
 
-//    private fun checkGps(): Boolean {
-//        val lm: LocationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        var gpsEnabled = false;
-//        try {
-//            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-//        } catch (e: Exception) {
-//            Log.e(TAG, "askForGps: " + e.message)
-//        }
-//
-//        return gpsEnabled
-//    }
-
-//    private fun askForGps() {
-//        Log.d(TAG, "askForGps")
-//
-//        val dialog = AlertDialog
-//            .Builder(this.context)
-//            .setMessage("Please turn on GPS Location")
-//            .setCancelable(false)
-//            .setPositiveButton("Done", DialogInterface.OnClickListener {
-//                _, _-> run {
-//                    if(checkGps()) getDeviceLocation()
-//                }
-//            })
-//            .create()
-//
-//        dialog.setTitle("Gps error")
-//        dialog.show()
-//    }
-
     private fun getLocalPlaces(target: LatLng) {
         Log.d(TAG, "getLocalPlaces = " + target.latitude + " " + target.longitude)
         LocalPlaceHttp(this.requireContext()).getByLatLngAndTrad(target.latitude.toString(), target.longitude.toString(), Locale.getDefault().language, object: VolleyCallbackArray {
@@ -677,8 +647,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         println(localPlace)
         val intent = Intent(context, PlaceActivity::class.java).apply {
             putExtra("PLACE", localPlace)
-            putExtra("TOKEN", token)
+            putExtra("TOKEN", ACTIVITY.token)
             putExtra("FROM", "map")
+            putExtra("GROUP", ACTIVITY.group)
+            putExtra("USER", ACTIVITY.user)
         }
         startActivity(intent)
     }

@@ -84,7 +84,6 @@ class CalendarFragment : BaseFragment() {
                 for(event in lpRes) {
                     var found = false
                     event.travel_date_original = event.travel_date
-                    event.travel_date = event.travel_date.substring(0, event.travel_date.indexOf("T"))
                     val userEvent = findUser(event.UserId)
                     if(userEvent != null){
                         for(i: Int in 0 until listItems.size){
