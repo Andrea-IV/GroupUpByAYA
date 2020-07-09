@@ -479,7 +479,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
         for(event in lpRes) {
             event.travel_date_original = event.travel_date
-            event.travel_date = event.travel_date.substring(0, event.travel_date.indexOf("T"))
             if(event.UserId == user.id && event.travel_date == date){
                 Log.d("Event", event.toString())
                 modifyEvent(event)

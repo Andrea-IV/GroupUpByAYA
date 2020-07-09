@@ -48,7 +48,7 @@ class CreatePlaceActivity : AppCompatActivity() {
 
     private fun createPlace(){
         if(title.text.isNotEmpty() && address.text.isNotEmpty() && description.text.isNotEmpty() && rating.text.isNotEmpty()){
-            place = LocalPlace(0, title.text.toString(), "0", "0", address.text.toString(), "0", "0", Date(), user.id, ArrayList<Photo>(), rating.text.toString().toDouble(), ArrayList<Translation>(), ArrayList<Tag>(), 0.0, rating.text.toString().toInt(), 0)
+            place = LocalPlace(0, title.text.toString(), "0", "0", address.text.toString(), "0", "0", Date(), user.id, ArrayList<Photo>(), rating.text.toString().toDouble(), ArrayList<Translation>(), ArrayList<Tag>(), 0.0, rating.text.toString().toInt(), 0,  null)
             LocalPlaceHttp(this).createPlace(place, token,  object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     finish()

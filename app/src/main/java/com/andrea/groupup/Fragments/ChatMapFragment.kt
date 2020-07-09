@@ -207,11 +207,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             }
 
             override fun onOpenFailure(ex: java.lang.Exception) {
-                System.err.println("sauce"+ex)
+                System.err.println(ex)
             }
 
             override fun onFailure(ex: java.lang.Exception) {
-                System.err.println("sauce"+ex)
+                System.err.println(ex)
             }
 
             override fun onClosed(reason: String) {
@@ -576,36 +576,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         return gps_enabled && network_enabled
     }
 
-//    private fun checkGps(): Boolean {
-//        val lm: LocationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        var gpsEnabled = false;
-//        try {
-//            return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-//        } catch (e: Exception) {
-//            Log.e(TAG, "askForGps: " + e.message)
-//        }
-//
-//        return gpsEnabled
-//    }
-
-//    private fun askForGps() {
-//        Log.d(TAG, "askForGps")
-//
-//        val dialog = AlertDialog
-//            .Builder(this.context)
-//            .setMessage("Please turn on GPS Location")
-//            .setCancelable(false)
-//            .setPositiveButton("Done", DialogInterface.OnClickListener {
-//                _, _-> run {
-//                    if(checkGps()) getDeviceLocation()
-//                }
-//            })
-//            .create()
-//
-//        dialog.setTitle("Gps error")
-//        dialog.show()
-//    }
-
     private fun getLocalPlaces(target: LatLng) {
         Log.d(TAG, "getLocalPlaces = " + target.latitude + " " + target.longitude)
         LocalPlaceHttp(this.requireContext()).getByLatLngAndTrad(target.latitude.toString(), target.longitude.toString(), Locale.getDefault().language, object: VolleyCallbackArray {
@@ -677,8 +647,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         println(localPlace)
         val intent = Intent(context, PlaceActivity::class.java).apply {
             putExtra("PLACE", localPlace)
-            putExtra("TOKEN", token)
+            putExtra("TOKEN", ACTIVITY.token)
             putExtra("FROM", "map")
+            putExtra("GROUP", ACTIVITY.group)
+            putExtra("USER", ACTIVITY.user)
         }
         startActivity(intent)
     }
@@ -923,12 +895,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         mapFragment.view?.bringToFront()
         view?.myChatButton?.setImageResource(R.drawable.chat);
         onMap = false
+        relativeChatLayout?.setVisibility(View.VISIBLE)
+        chat?.setVisibility(View.VISIBLE)
+
     }
 
     private fun bringMap(){
         mapFragment.view?.layoutParams =   ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT)
         mapFragment.view?.setBackgroundColor(Color.parseColor("#ffffffff"))
         chat?.setBackgroundColor(Color.parseColor("#90FFFFFF"))
+
         chatTextLayout?.visibility = View.GONE
         chat?.layoutParams = chatlayoutparams
         mapFragment.view?.alpha = 1f
@@ -937,6 +913,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         view?.myChatButton?.show()
         chat?.bringToFront()
         onMap = true
+        relativeChatLayout?.setVisibility(View.GONE)
+        chat?.setVisibility(View.GONE)
     }
 
 

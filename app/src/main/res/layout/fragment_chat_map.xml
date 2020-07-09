@@ -81,6 +81,7 @@
         android:clipToPadding="false"
         android:focusableInTouchMode="true"
         android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -142,6 +143,7 @@
         android:layout_gravity="right"
         android:orientation="horizontal"
         android:translationZ="1dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/chat"
         app:layout_constraintTop_toTopOf="parent">
 
