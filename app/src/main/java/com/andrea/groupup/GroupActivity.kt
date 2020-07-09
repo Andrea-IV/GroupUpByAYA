@@ -46,16 +46,21 @@ class GroupActivity : AppCompatActivity() {
 
         context = this
 
-        groupViewInit()
+
         searchInit()
         addGroupInit()
         menuInit()
     }
 
+    override fun onResume() {
+        super.onResume()
+        groupViewInit()
+    }
     private fun groupViewInit(){
         GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
+                listItems.clear()
                 val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
                 for (group: Group in groupRes){
                     listItems.add(group)

@@ -1,30 +1,24 @@
 package com.andrea.groupup.Fragments
 
 import android.Manifest
-import android.app.*
+import android.app.AlertDialog
 import android.content.*
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.location.Location
 import android.location.LocationManager
-import android.opengl.Visibility
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.andrea.groupup.*
@@ -33,20 +27,17 @@ import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
 import com.andrea.groupup.Models.Message
-import com.andrea.groupup.Models.Notification
-import com.andrea.groupup.R
 import com.android.volley.VolleyError
-import com.beust.klaxon.json
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.android.gms.common.api.*
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
@@ -73,10 +64,6 @@ private const val TAG = "MAP"
 class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
 
     private var permissions = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-
-    lateinit var group: Group
-    lateinit var user: User
-    lateinit var token: String
 
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var mMap: GoogleMap
@@ -119,7 +106,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     private lateinit var onMapChatButton: ImageButton;
     private lateinit var sendMessage: ImageButton;
     private lateinit var mapHideButton: ImageButton;
-
+    private lateinit var createLocalPlaceButton: ImageButton
 
     private var chat:LinearLayout? = null;
     private var chatTextLayout:LinearLayout? = null;
@@ -147,15 +134,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-     ): View? {
+    ): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
 
-        group = ACTIVITY.group
-        user = ACTIVITY.user
-        token = ACTIVITY.token
-
-        group.members.forEach {
+        ACTIVITY.group.members.forEach {
             Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
             Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
                 override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
@@ -164,7 +147,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
                     friendsBitmap[it.id] = bitmap
                 }
 
-                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                    Log.d(TAG, "onPrepareLoad")
+                }
 
                 override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
                     Log.d(TAG, "onBitmapFailed -> ${it.username}")
@@ -184,6 +169,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         sendMessage = view.sendMessage
         mapHideButton = view.mapHideButton
         shareLocationButton = view.findViewById(R.id.shareLocationButton)
+        createLocalPlaceButton = view.createLocalPlaceButton
 
         chatTextLayout = view.findViewById(R.id.chatTextLayout) as LinearLayout
         relativeChatLayout = view.findViewById(R.id.relativeChatLayout) as RelativeLayout
@@ -246,6 +232,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             }
         }
 
+        createLocalPlaceButton.setOnClickListener{ _ ->
+            showLocalPlaceModeDialog()
+        }
+
         view.findViewById<FloatingActionButton>(R.id.myLocationButton).setOnClickListener {
             Log.d(TAG, "onMyLocationButtonClick")
 
@@ -280,10 +270,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
                 edit.putBoolean("isSharing", true)
                 edit.apply()
                 serviceIntent = Intent(ACTIVITY, SharePositionService::class.java)
-                serviceIntent.putExtra("groupId", group.id)
-                serviceIntent.putExtra("groupName", group.name)
-                serviceIntent.putExtra("user", user)
-                serviceIntent.putExtra("token", token)
+                serviceIntent.putExtra("groupId", ACTIVITY.group.id)
+                serviceIntent.putExtra("groupName", ACTIVITY.group.name)
+                serviceIntent.putExtra("user", ACTIVITY.user)
+                serviceIntent.putExtra("token", ACTIVITY.token)
                 ACTIVITY.startService(serviceIntent)
             } else {
                 if(this::serviceIntent.isInitialized)
@@ -305,18 +295,41 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         return view
     }
 
+    private fun showLocalPlaceModeDialog() {
+        if(!preferences.getBoolean("hasSeensLocalPlaceMapTutorialOnce", false)) {
+            createDialolg("Localplace mode",
+                "By clicking this button, the pin you place on the map will allow you to create new places and not meeting points !",
+                "Let's go",
+                DialogInterface.OnClickListener { dialog, which ->
+                    dialog.dismiss()
+                    startLocalPlaceMode()
+                    edit.putBoolean("hasSeensLocalPlaceMapTutorialOnce", true)
+                    edit.apply()
+                },
+                null,
+                null
+            )
+        } else {
+            startLocalPlaceMode()
+        }
+    }
+
+    private fun startLocalPlaceMode() {
+        DrawableCompat.setTint(DrawableCompat.wrap(createLocalPlaceButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
+    }
+
     private fun getFriendsLocation() {
-        Log.d(TAG, "getFriendsLocation")
+//        Log.d(TAG, "getFriendsLocation")
         GroupHttp(ACTIVITY)
-            .getById(group.id, object: VolleyCallback {
+            .getById(ACTIVITY.group.id, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
-                    Log.d(TAG, "getFriendsLocation - onResponse")
-                    group = Mapper().mapper(jsonObject)
+//                    Log.d(TAG, "getFriendsLocation - onResponse")
+                    ACTIVITY.group = Mapper().mapper(jsonObject)
                     displayFriendsLocation()
                 }
 
                 override fun onError(error: VolleyError) {
-                    Log.d(TAG, "getFriendsLocation - onError")
+//                    Log.d(TAG, "getFriendsLocation - onError")
                     Log.e(TAG, error.toString())
                 }
 
@@ -324,16 +337,35 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     }
 
 
+    private var Marker.bitmap: BitmapDescriptor?
+        get() = null
+        set(value) {
+            this.bitmap = value
+        }
+
+    private fun resizeBitmap(bitmap: Bitmap): BitmapDescriptor {
+        val height = 75
+        val width = 75
+        val smallMarker = Bitmap.createScaledBitmap(bitmap, width, height, false)
+        return BitmapDescriptorFactory.fromBitmap(smallMarker)
+    }
+
     private var friendsMarker = ArrayList<Marker>()
     private fun displayFriendsLocation() {
 //        removeMarkers(friendsMarker)
-        group.members.forEach {
-            if(it.id != user.id && it.UserGroup.is_sharing_pos) {
+        ACTIVITY.group.members.forEach {
+            if(it.id != ACTIVITY.user.id && it.UserGroup.is_sharing_pos) {
+                val fm = getFriendMarker(it.username)
+
                 var bDesc: BitmapDescriptor? = null
                 if (friendsBitmap[it.id] != null) {
-                    bDesc = BitmapDescriptorFactory.fromBitmap(friendsBitmap[it.id])
+//                    bDesc = BitmapDescriptorFactory.fromBitmap(friendsBitmap[it.id])
+                    bDesc = resizeBitmap(friendsBitmap[it.id]!!)
+                } else if (fm?.bitmap !== BitmapDescriptorFactory.fromResource(R.drawable.example)) {
+//                    bDesc = BitmapDescriptorFactory.fromResource(R.drawable.example)
+                    bDesc = resizeBitmap(BitmapFactory.decodeResource(ACTIVITY.resources, R.drawable.example))
                 }
-                val fm = getFriendMarker(it.username)
+
                 if(fm !== null) {
                     fm.position = LatLng(it.UserGroup.coordinate_x.toDouble(), it.UserGroup.coordinate_y.toDouble())
                     fm.setIcon(bDesc)
@@ -375,8 +407,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     }
 
     private fun checkUserPositionShareState() {
-        Log.d(TAG, "checkUserPositionShareState")
-        Log.d(TAG, preferences.getBoolean("isSharing", false).toString())
+//        Log.d(TAG, "checkUserPositionShareState")
+//        Log.d(TAG, preferences.getBoolean("isSharing", false).toString())
         if(preferences.getBoolean("isSharing", false)) {
             DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
         } else {
@@ -457,7 +489,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     }
 
     private fun getTodaysTravel() {
-        TravelHttp(ACTIVITY).getTodaysTravel(group.id, token, object: VolleyCallback {
+        TravelHttp(ACTIVITY).getTodaysTravel(ACTIVITY.group.id, ACTIVITY.token, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d(TAG, "getTodaysTravel On Response")
 
@@ -527,7 +559,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         }
     }
 
-    private fun createDialolg(title: String, message: String, positive: String, positiveClick: DialogInterface.OnClickListener?, negative: String, negativeClick: DialogInterface.OnClickListener?) {
+    private fun createDialolg(title: String, message: String, positive: String, positiveClick: DialogInterface.OnClickListener?, negative: String?, negativeClick: DialogInterface.OnClickListener?) {
         AlertDialog
             .Builder(context)
             .setTitle(title)
@@ -748,8 +780,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         val intent = Intent(context, CreateMeetingPointActivity::class.java)
 //        intent.putExtra("meetingPoing", user)
         intent.putExtra("latlng", marker.position)
-        intent.putExtra("user", user)
-        intent.putExtra("token", token)
+        intent.putExtra("user", ACTIVITY.user)
+        intent.putExtra("token", ACTIVITY.token)
         startActivityForResult(intent, 1)
     }
 
@@ -760,7 +792,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
                 if(resultCode == 1) {
                     createMeetingPointMarker?.remove()
                     createMeetingPointMarker = null
-                    sendNotifications("Meeting notification", "Your friend " + user.username + " asks you to join him !", null)
+                    sendNotifications("Meeting notification", "Your friend " + ACTIVITY.user.username + " asks you to join him !", null)
                 } else if (resultCode == 0) {
                     createMeetingPointMarker?.showInfoWindow()
                 }
@@ -770,7 +802,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
 
     fun getMeetingPointsNow() {
         Log.d(TAG, "getMeetingPointsNow")
-        MeetingPointHttp(ACTIVITY).getNow(group.id, object: VolleyCallbackArray {
+        MeetingPointHttp(ACTIVITY).getNow(ACTIVITY.group.id, object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getMeetingPointsNow - onResponse")
                 meetingPointsList = Mapper().mapper(array)
@@ -791,8 +823,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         val bitmap = BitmapDescriptorFactory.fromResource(R.drawable.white_pushpin)
 
         meetingPointsList.forEach {meetingPoint ->
-            val user = group.members.filter { it.id == meetingPoint.UserId }[0]
-            meetingPointMarkerList.add(addMarker(user.username, null, "show_meeting_point " + meetingPoint.id.toString(), LatLng(meetingPoint.coordinate_x.toDouble(), meetingPoint.coordinate_y.toDouble()), bitmap, true))
+            val user = ACTIVITY.group.members.filter { it.id == meetingPoint.UserId }[0]
+            meetingPointMarkerList.add(addMarker(ACTIVITY.user.username, null, "show_meeting_point " + meetingPoint.id.toString(), LatLng(meetingPoint.coordinate_x.toDouble(), meetingPoint.coordinate_y.toDouble()), bitmap, true))
         }
 
     }
@@ -802,10 +834,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         val intent = Intent(context, ShowMeetingPointActivity::class.java)
         val mp = meetingPointsList.filter { it.id == marker.tag.toString().split(" ")[1].toInt() }[0]
         intent.putExtra("meetingpoint", mp)
-        intent.putExtra("token", token)
-        val creator = group.members.filter { it.id == mp.UserId }[0]
+        intent.putExtra("token", ACTIVITY.token)
+        val creator = ACTIVITY.group.members.filter { it.id == mp.UserId }[0]
         intent.putExtra("user", creator)
-        intent.putExtra("creator", creator.id == user.id)
+        intent.putExtra("creator", creator.id == ACTIVITY.user.id)
         startActivity(intent)
     }
 
@@ -819,7 +851,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             true
         )
         if (message.text.length > 0) {
-            sendNotifications("New Chat Message in group : "+group.name, message.text, "notif_group_"+group.id)
+            sendNotifications("New Chat Message in group : "+ACTIVITY.group.name, message.text, "notif_group_"+ACTIVITY.group.id)
             scaledrone!!.publish(roomName, message)
             editText!!.text.clear()
         }
@@ -892,6 +924,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         view?.myLocationButton?.hide()
         view?.myTravelButton?.hide()
         view?.myChatButton?.hide()
+        view?.shareLocationButton?.hide()
         mapFragment.view?.bringToFront()
         view?.myChatButton?.setImageResource(R.drawable.chat);
         onMap = false
@@ -911,6 +944,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         view?.myLocationButton?.show()
         view?.myTravelButton?.show()
         view?.myChatButton?.show()
+        if(checkGps()) {
+            view?.shareLocationButton?.show()
+        }
         chat?.bringToFront()
         onMap = true
         relativeChatLayout?.setVisibility(View.GONE)
@@ -936,7 +972,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     private fun sendNotifications(title: String, message: String, tag: String?){
         NotificationHttp(ACTIVITY).send(
             Notification(
-                group.id,
+                ACTIVITY.group.id,
                 NotificationMessage(
                     Notif(
                         title,
@@ -945,7 +981,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
                     )
                 )
             ),
-            token,
+            ACTIVITY.token,
             object : VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d(TAG, "sendNotifications - NotificationHttp - onResponse")

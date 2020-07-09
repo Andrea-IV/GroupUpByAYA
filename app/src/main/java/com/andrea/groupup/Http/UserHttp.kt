@@ -18,8 +18,8 @@ class UserHttp(val context: Context)  {
         http.getAll("$URL?username=$name", volleyCallbackArray)
     }
 
-    fun login(username: String, password: String, volleyCallback: VolleyCallback) {
-        val body = JSONObject("{\"username\": \"$username\", \"password\": \"$password\"}")
+    fun login(username: String, password: String, firebase_token: String, volleyCallback: VolleyCallback) {
+        val body = JSONObject("{\"username\": \"$username\", \"password\": \"$password\", \"firebase_token\": \"$firebase_token\"}")
         http.post("$URL/login", volleyCallback, body)
     }
 
