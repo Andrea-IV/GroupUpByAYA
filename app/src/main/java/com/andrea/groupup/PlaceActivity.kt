@@ -28,6 +28,7 @@ import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
 import com.android.volley.VolleyError
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
@@ -62,10 +63,16 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         user = intent.getSerializableExtra("USER") as User
         from = intent.getStringExtra("FROM")
 
-        if("map".equals(from)) {
-            findViewById<Button>(R.id.button2).visibility = View.GONE
-        }
+//        if("map".equals(from)) {
+//            findViewById<Button>(R.id.button2).visibility = View.GONE
+//        }
 
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            val data = Intent()
+            data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
+            setResult(1, data)
+            finish()
+        }
         if(!localPlace.Photos.isNullOrEmpty()){
             Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
             findViewById<ImageView>(R.id.next).setOnClickListener {
