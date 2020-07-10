@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.*
 import com.andrea.groupup.GroupActivity
 import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.Http
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
@@ -22,6 +23,7 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
     ArrayAdapter<User>(ctx,
         R.layout.list_of_participants, items) {
 
+    private lateinit var http: Http
     var userConnected = user
     var isAdmin = IsAdmin
     var arrayList = items
@@ -40,6 +42,7 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
 
         val viewHolder: ParticipantViewHolder
 
+        http = Http(context)
         if (view == null) {
             val inflater = LayoutInflater.from(context)
             view = inflater.inflate(R.layout.list_of_participants, viewGroup, false)
@@ -71,7 +74,7 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
                 popupMenu.setOnMenuItemClickListener { item ->
                     when(item.itemId){
                         R.id.leave -> {
-                            GroupHttp(context).leaveGroup(idGroup.toString(), token, object:VolleyCallback {
+                            GroupHttp(http).leaveGroup(idGroup.toString(), token, object:VolleyCallback {
                                 override fun onResponse(jsonObject: JSONObject) {
                                     Log.d("LEAVE OK", jsonObject.toString())
                                     (context as Activity).finish()
@@ -115,7 +118,7 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
                     popupMenu.setOnMenuItemClickListener { item ->
                         when(item.itemId){
                             R.id.leave -> {
-                                GroupHttp(context).kickGroup(idGroup.toString(), participant.id.toString(), token, object:VolleyCallback {
+                                GroupHttp(http).kickGroup(idGroup.toString(), participant.id.toString(), token, object:VolleyCallback {
                                     override fun onResponse(jsonObject: JSONObject) {
                                         Log.d("LEAVE", jsonObject.toString())
                                     }

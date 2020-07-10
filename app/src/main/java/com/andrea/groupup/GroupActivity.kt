@@ -10,11 +10,8 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
 import com.andrea.groupup.Adapters.InvitesAdapter
-import com.andrea.groupup.Http.FriendHttp
-import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.FriendRequest
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
@@ -28,6 +25,7 @@ import kotlin.collections.ArrayList
 
 class GroupActivity : AppCompatActivity() {
 
+    private lateinit var http: Http
     private lateinit var adapter: GroupAdapter
     private lateinit var searchView: SearchView
     private lateinit var gridView: GridView
@@ -41,6 +39,7 @@ class GroupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_group)
 
+        http =  Http(this)
         user = intent.getSerializableExtra("User") as User
         token = intent.getStringExtra("Token")
 
@@ -57,7 +56,7 @@ class GroupActivity : AppCompatActivity() {
         groupViewInit()
     }
     private fun groupViewInit(){
-        GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
+        GroupHttp(http).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
                 listItems.clear()
@@ -122,7 +121,7 @@ class GroupActivity : AppCompatActivity() {
 
                     Log.d("GROUP", token)
 
-                    GroupHttp(this).createGroup(view.findViewById<EditText>(R.id.newGroup).text.toString(), token, object: VolleyCallback {
+                    GroupHttp(http).createGroup(view.findViewById<EditText>(R.id.newGroup).text.toString(), token, object: VolleyCallback {
                         override fun onResponse(jsonObject: JSONObject) {
                             Log.d("GROUP", jsonObject.toString())
                             val gson:Gson = Gson()

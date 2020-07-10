@@ -67,6 +67,7 @@ private const val TAG = "MAP"
 
 class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
 
+    private lateinit var http: Http
     private val PLACE_ACTIVITY_RESULT = 4
     private lateinit var userLocation: LatLng
 
@@ -92,13 +93,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
 
-    private lateinit var sharePositionHandler: Handler
-    private val checkPositionShareStateRunnable =  object: Runnable {
-        override fun run() {
-            checkUserPositionShareState()
-            sharePositionHandler.postDelayed(this, 1000)
-        }
-    }
+//    private lateinit var sharePositionHandler: Handler
+//    private val checkPositionShareStateRunnable =  object: Runnable {
+//        override fun run() {
+//            checkUserPositionShareState()
+//            sharePositionHandler.postDelayed(this, 1000)
+//        }
+//    }
 
     private lateinit var friendsLocationHandler: Handler
     private val getFriendsLocationRunnable = object: Runnable {
@@ -146,6 +147,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
 
+        http = Http(ACTIVITY)
         ACTIVITY.group.members.forEach {
             Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
             Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
@@ -273,8 +275,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         }
 
         shareLocationButton.setOnClickListener {
-            Log.d(TAG, "issharing = " + preferences.getBoolean("isSharing", false).toString())
+            println("issharing = uwu")
             if (!preferences.getBoolean("isSharing", false)) {
+                DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
                 edit.putBoolean("isSharing", true)
                 edit.apply()
                 serviceIntent = Intent(ACTIVITY, SharePositionService::class.java)
@@ -286,6 +289,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             } else {
                 if(this::serviceIntent.isInitialized)
                     ACTIVITY.stopService(serviceIntent)
+                DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), Color.WHITE)
                 edit.putBoolean("isSharing", false)
                 edit.apply()
             }
@@ -296,8 +300,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         }
 
 
-        sharePositionHandler = Handler(Looper.getMainLooper())
-        sharePositionHandler.post(checkPositionShareStateRunnable)
+//        sharePositionHandler = Handler(Looper.getMainLooper())
+//        sharePositionHandler.post(checkPositionShareStateRunnable)
         friendsLocationHandler = Handler(Looper.getMainLooper())
         friendsLocationHandler.post(getFriendsLocationRunnable)
         return view
@@ -333,7 +337,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
 
     private fun getFriendsLocation() {
 //        Log.d(TAG, "getFriendsLocation")
-        GroupHttp(ACTIVITY)
+        GroupHttp(http)
             .getById(ACTIVITY.group.id, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
 //                    Log.d(TAG, "getFriendsLocation - onResponse")
@@ -426,7 +430,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
         } else {
             DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), Color.parseColor("#FFFFFF"))
-            sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
+//            sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
         }
     }
 
@@ -466,7 +470,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     }
     override fun onPause() {
         super.onPause()
-        sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
+//        sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
         friendsLocationHandler.removeCallbacks(getFriendsLocationRunnable)
     }
 
@@ -478,8 +482,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
-        sharePositionHandler.post(checkPositionShareStateRunnable)
-        friendsLocationHandler.post(getFriendsLocationRunnable)
+//        sharePositionHandler.post(checkPositionShareStateRunnable)
+//        friendsLocationHandler.post(getFriendsLocationRunnable)
 
         if(checkGps()) getDeviceLocation()
         getMeetingPointsNow()

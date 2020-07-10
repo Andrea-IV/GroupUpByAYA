@@ -11,11 +11,8 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.andrea.groupup.Adapters.AddParticipantAdapter
 import com.andrea.groupup.Adapters.ParticipantAdapter
-import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
-import com.andrea.groupup.Http.UserHttp
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
 
@@ -32,6 +29,7 @@ import kotlin.properties.Delegates
  */
 class GroupFragment : BaseFragment() {
 
+    private lateinit var http: Http
     lateinit var group: Group
     lateinit var user: User
     lateinit var token: String
@@ -48,7 +46,7 @@ class GroupFragment : BaseFragment() {
         group = ACTIVITY.group
         user = ACTIVITY.user
         token = ACTIVITY.token
-
+        http = Http(ACTIVITY)
         val listItems = arrayListOf<User>()
 
         for (member in group.members) {
@@ -91,7 +89,7 @@ class GroupFragment : BaseFragment() {
                         override fun onItemClick(parent: AdapterView<*>, view: View,
                                                  position: Int, id: Long) {
                             addListItems[position]
-                            GroupHttp(ACTIVITY).addToGroup(group.id.toString(), addListItems[position].id.toString(), token, object:VolleyCallback {
+                            GroupHttp(http).addToGroup(group.id.toString(), addListItems[position].id.toString(), token, object:VolleyCallback {
                                 override fun onResponse(jsonObject: JSONObject) {
                                     val gson: Gson = Gson()
                                     val listGroup = arrayListOf<Group>()
