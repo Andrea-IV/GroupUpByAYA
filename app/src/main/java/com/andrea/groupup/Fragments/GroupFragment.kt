@@ -29,7 +29,6 @@ import kotlin.properties.Delegates
  */
 class GroupFragment : BaseFragment() {
 
-    private lateinit var http: Http
     lateinit var group: Group
     lateinit var user: User
     lateinit var token: String
@@ -46,7 +45,7 @@ class GroupFragment : BaseFragment() {
         group = ACTIVITY.group
         user = ACTIVITY.user
         token = ACTIVITY.token
-        http = Http(ACTIVITY)
+
         val listItems = arrayListOf<User>()
 
         for (member in group.members) {
@@ -89,7 +88,7 @@ class GroupFragment : BaseFragment() {
                         override fun onItemClick(parent: AdapterView<*>, view: View,
                                                  position: Int, id: Long) {
                             addListItems[position]
-                            GroupHttp(http).addToGroup(group.id.toString(), addListItems[position].id.toString(), token, object:VolleyCallback {
+                            GroupHttp(ACTIVITY).addToGroup(group.id.toString(), addListItems[position].id.toString(), token, object:VolleyCallback {
                                 override fun onResponse(jsonObject: JSONObject) {
                                     val gson: Gson = Gson()
                                     val listGroup = arrayListOf<Group>()

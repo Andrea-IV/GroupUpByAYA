@@ -67,7 +67,7 @@ private const val TAG = "MAP"
 
 class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
 
-    private lateinit var http: Http
+    private lateinit var groupHttp: GroupHttp
     private val PLACE_ACTIVITY_RESULT = 4
     private lateinit var userLocation: LatLng
 
@@ -147,7 +147,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
 
-        http = Http(ACTIVITY)
+        groupHttp = GroupHttp(ACTIVITY)
+
         ACTIVITY.group.members.forEach {
             Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
             Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
@@ -337,7 +338,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
 
     private fun getFriendsLocation() {
 //        Log.d(TAG, "getFriendsLocation")
-        GroupHttp(http)
+        groupHttp
             .getById(ACTIVITY.group.id, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
 //                    Log.d(TAG, "getFriendsLocation - onResponse")

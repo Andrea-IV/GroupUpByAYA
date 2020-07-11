@@ -7,8 +7,9 @@ import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Http.VolleyCallbackArray
 import org.json.JSONObject
 
-class GroupHttp(private val http: Http)  {
+class GroupHttp(val context: Context)  {
     private val URL = Constants.BASE_URL + "/groups"
+    private val http = Http(context)
 
     fun createGroup(name: String, token: String, volleyCallback: VolleyCallback){
         http.postWithToken(URL, volleyCallback, JSONObject("{\"name\": \"$name\"}"), token)

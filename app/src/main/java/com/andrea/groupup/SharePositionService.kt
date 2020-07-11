@@ -23,6 +23,8 @@ import org.json.JSONObject
 private const val TAG = "SHARE_POSITION_SERVICE"
 
 class SharePositionService : Service() {
+
+    private lateinit var groupHttp: GroupHttp
     private val sharePositionRunnable =  object: Runnable {
         override fun run() {
             sharePositionHandlerFunction()
@@ -30,7 +32,6 @@ class SharePositionService : Service() {
         }
     }
     private var hasStarted = false
-    private lateinit var http: Http
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var builder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
@@ -59,7 +60,8 @@ class SharePositionService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
 //        super.onStartCommand(intent, flags, startId)
-        http = Http(this)
+        groupHttp = GroupHttp(this)
+
         preferences = this.getSharedPreferences("groupup", Context.MODE_PRIVATE)
         edit = preferences.edit()
 
@@ -144,7 +146,7 @@ class SharePositionService : Service() {
 //        Log.d(TAG, "shareUserPosition")
         mFusedLocationProviderClient.lastLocation.addOnSuccessListener {
             if (it !== null) {
-                GroupHttp(http)
+                groupHttp
                     .shareUserPositionStart(groupId, it.latitude, it.longitude, token, object:
                         VolleyCallback {
                         override fun onResponse(jsonObject: JSONObject) {
@@ -194,7 +196,7 @@ class SharePositionService : Service() {
 
     private fun shareUserPositionStop() {
 //        Log.d(TAG, "shareUserPositionStop")
-        GroupHttp(http)
+        groupHttp
             .shareUserPositionStop(groupId, token, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
 //                    Log.d(TAG, "shareUserPositionStop - onResponse")
