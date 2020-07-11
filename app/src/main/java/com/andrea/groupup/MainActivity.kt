@@ -21,6 +21,7 @@ import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
+    private var firebaseToken: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -33,13 +34,14 @@ class MainActivity : AppCompatActivity() {
 //                }
 
                 // Get the Instance ID token//
-                val token = task.result!!.token
-                Log.d("FIREBASE TOKEN", token)
+                firebaseToken = task.result!!.token
+                Log.d("FIREBASE TOKEN", firebaseToken)
             })
+
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener{
             val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("Huskky", "test", object: VolleyCallback {
+            UserHttp(this).login("Huskky", "test", firebaseToken!!, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d("USER", "getUser - onResponse")
                     /*val fileOutputStream: FileOutputStream
@@ -68,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         val button2 = findViewById<Button>(R.id.button2)
         button2.setOnClickListener{
             val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("bunuu", "test", object: VolleyCallback {
+            UserHttp(this).login("bunuu", "test", firebaseToken!!, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     Log.d("USER", "getUser - onResponse")
                     Log.d("USER", jsonObject.toString())
@@ -220,7 +222,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loginAction(username: String, password: String){
         val intent = Intent(this, GroupActivity::class.java)
-        UserHttp(this).login(username, password, object: VolleyCallback {
+        UserHttp(this).login(username, password, firebaseToken!!, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("USER", "getUser - onResponse")
 

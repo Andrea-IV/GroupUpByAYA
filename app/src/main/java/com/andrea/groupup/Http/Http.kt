@@ -182,4 +182,9 @@ class Http {
 
         queue.add(request)
     }
+
+    fun getDirectionPolyline(url: String, response: Response.Listener<String>, error: Response.ErrorListener) {
+        val request = object: StringRequest(Method.GET, url, response, error) {}
+        queue.add(request)
+    }
 }

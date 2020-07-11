@@ -11,11 +11,8 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.andrea.groupup.Adapters.AddParticipantAdapter
 import com.andrea.groupup.Adapters.ParticipantAdapter
-import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
-import com.andrea.groupup.Http.UserHttp
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
 

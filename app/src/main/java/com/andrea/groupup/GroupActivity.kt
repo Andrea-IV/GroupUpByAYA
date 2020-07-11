@@ -54,10 +54,15 @@ class GroupActivity : AppCompatActivity() {
         menuInit()
     }
 
+    override fun onResume() {
+        super.onResume()
+        groupViewInit()
+    }
     private fun groupViewInit(){
         GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
+                listItems.clear()
                 val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
                 for (group: Group in groupRes){
                     listItems.add(group)
@@ -274,7 +279,7 @@ class GroupActivity : AppCompatActivity() {
     }
 
     private fun tryLoginBefore(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
-        UserHttp(this).login(user.username, password, object: VolleyCallback {
+        /*UserHttp(this).login(user.username, password, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("LOGIN TRY", jsonObject.toString())
                 token = jsonObject.get("token").toString()
@@ -288,7 +293,7 @@ class GroupActivity : AppCompatActivity() {
                 dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.error_login)
                 dialog.findViewById<TextView>(R.id.error)?.visibility = View.VISIBLE
             }
-        })
+        })*/
     }
 
     private fun callEdit(params: String, usernameToSend: String, emailToSend: String, dialog: BottomSheetDialog){

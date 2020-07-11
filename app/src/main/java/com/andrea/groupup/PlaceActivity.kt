@@ -31,6 +31,7 @@ import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
 import com.android.volley.VolleyError
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
@@ -65,10 +66,16 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         user = intent.getSerializableExtra("USER") as User
         from = intent.getStringExtra("FROM")
 
-        if("map".equals(from)) {
-            findViewById<Button>(R.id.button2).visibility = View.GONE
-        }
+//        if("map".equals(from)) {
+//            findViewById<Button>(R.id.button2).visibility = View.GONE
+//        }
 
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            val data = Intent()
+            data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
+            setResult(1, data)
+            finish()
+        }
         if(!localPlace.Photos.isNullOrEmpty()){
             Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
             findViewById<ImageView>(R.id.next).setOnClickListener {
@@ -90,9 +97,9 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         recyclerView.adapter = adapter
 
         findViewById<TextView>(R.id.title).text = localPlace.name
-        if(localPlace.translations.isNotEmpty()){
-            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
-        }
+//        if(localPlace.translations.isNotEmpty()){
+//            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
+//        }
 
         if(localPlace.Ratings.toString() == "null"){
             findViewById<TextView>(R.id.rating).text = resources.getText(R.string.no_rating)
@@ -251,7 +258,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         cs.clone(cl)
         cs.setHorizontalBias(R.id.selected, 0.18f)
         cs.applyTo(cl)
-        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
+//        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }

@@ -26,12 +26,14 @@ import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.*
 import com.android.volley.VolleyError
+
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_group.*
 import net.gotev.uploadservice.MultipartUploadRequest
 import org.json.JSONArray
+import com.google.android.gms.maps.model.LatLng
 import org.json.JSONObject
 import java.net.URI
 import java.util.*
@@ -54,6 +56,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var storagePermissionGranted = false
     private val uploadReceiver = SingleUploadBroadcastReceiver()
+    private lateinit var location: LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +65,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         user = intent.getSerializableExtra("USER") as User
         group = intent.getSerializableExtra("GROUP") as Group
         token = intent.getStringExtra("TOKEN")
+        location = intent.getParcelableExtra("location") as LatLng
 
         place = LocalPlace(0, "", "", "", "", "", "", Date(), user.id, ArrayList<Photo>(), 0.0, ArrayList<Translation>(), ArrayList<Tag>(), 0.0, 0, 0, null)
         place.id = 0

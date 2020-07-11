@@ -15,6 +15,10 @@ class LocalPlaceHttp (val context: Context) {
         http.getAll("$URL/", volleyCallbackArray)
     }
 
+    fun getByGroup(groupId: Int, lat: Double?, lng: Double?, token: String, volleyCallbackArray: VolleyCallbackArray) {
+        http.getAllWithToken("$URL/group/$groupId?lat=$lat&lng=$lng", token, volleyCallbackArray)
+    }
+
     fun getOne(id:String, volleyCallback: VolleyCallback) {
         http.getOne("$URL/$id", volleyCallback)
     }

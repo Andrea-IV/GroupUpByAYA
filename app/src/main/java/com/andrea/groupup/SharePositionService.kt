@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.Http
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
@@ -22,13 +23,15 @@ import org.json.JSONObject
 private const val TAG = "SHARE_POSITION_SERVICE"
 
 class SharePositionService : Service() {
+
+    private lateinit var groupHttp: GroupHttp
     private val sharePositionRunnable =  object: Runnable {
         override fun run() {
             sharePositionHandlerFunction()
             sharePositionHandler.postDelayed(this, 1000)
         }
     }
-
+    private var hasStarted = false
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var builder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
@@ -57,6 +60,8 @@ class SharePositionService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
 //        super.onStartCommand(intent, flags, startId)
+        groupHttp = GroupHttp(this)
+
         preferences = this.getSharedPreferences("groupup", Context.MODE_PRIVATE)
         edit = preferences.edit()
 
@@ -87,7 +92,7 @@ class SharePositionService : Service() {
     }
 
     private fun sharePositionHandlerFunction() {
-        Log.d(TAG, "sharePositionHandlerFunction")
+//        Log.d(TAG, "sharePositionHandlerFunction")
         var time = preferences.getInt("timeLeft", 3509000)
         var min = time / 1000 / 60
         var sec = time / 1000 % 60
@@ -96,10 +101,10 @@ class SharePositionService : Service() {
         edit.apply()
 
         if (!preferences.getBoolean("isSharing", false) || (min == 0 && sec == 0)) {
-            Log.d(TAG, "sharePositionHandlerFunction - isSharing = false")
+//            Log.d(TAG, "sharePositionHandlerFunction - isSharing = false")
             shareUserPositionStop()
         } else {
-            Log.d(TAG, "sharePositionHandlerFunction - isSharing = true")
+//            Log.d(TAG, "sharePositionHandlerFunction - isSharing = true")
             updateSharePositionNotification("$min:$sec")
             shareUserPosition()
         }
@@ -138,17 +143,17 @@ class SharePositionService : Service() {
     }
 
     private fun shareUserPosition() {
-        Log.d(TAG, "shareUserPosition")
+//        Log.d(TAG, "shareUserPosition")
         mFusedLocationProviderClient.lastLocation.addOnSuccessListener {
             if (it !== null) {
-                GroupHttp(this)
+                groupHttp
                     .shareUserPositionStart(groupId, it.latitude, it.longitude, token, object:
                         VolleyCallback {
                         override fun onResponse(jsonObject: JSONObject) {
                             Log.d(TAG, "shareUserPosition - onResponse")
-                            if(!preferences.getBoolean("isSharing", false)) {
+
+                            if(!hasStarted)
                                 showUserPositionShare()
-                            }
                         }
 
                         override fun onError(error: VolleyError) {
@@ -164,7 +169,7 @@ class SharePositionService : Service() {
         Log.d(TAG, "showUserPositionShare")
 //        DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
 //        getDeviceLocation()
-
+        hasStarted = true
         edit.putInt("notificationId", 123456789)
         edit.putInt("timeLeft", 3600000)
         edit.putBoolean("isSharing", true)
@@ -180,7 +185,7 @@ class SharePositionService : Service() {
     }
 
     private fun hideUserPositionShare() {
-        Log.d(TAG, "hideUserPositionShare")
+//        Log.d(TAG, "hideUserPositionShare")
         edit.putBoolean("isSharing", false)
         edit.apply()
         sharePositionHandler.removeCallbacks(sharePositionRunnable)
@@ -190,16 +195,16 @@ class SharePositionService : Service() {
     }
 
     private fun shareUserPositionStop() {
-        Log.d(TAG, "shareUserPositionStop")
-        GroupHttp(this)
+//        Log.d(TAG, "shareUserPositionStop")
+        groupHttp
             .shareUserPositionStop(groupId, token, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
-                    Log.d(TAG, "shareUserPositionStop - onResponse")
+//                    Log.d(TAG, "shareUserPositionStop - onResponse")
                     hideUserPositionShare()
                 }
 
                 override fun onError(error: VolleyError) {
-                    Log.d(TAG, "shareUserPositionStop - onError")
+//                    Log.d(TAG, "shareUserPositionStop - onError")
                     Log.e(TAG, error.toString())
                 }
             })

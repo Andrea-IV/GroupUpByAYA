@@ -1,5 +1,6 @@
 package com.andrea.groupup.Adapters
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.*
 import com.andrea.groupup.GroupActivity
 import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.Http
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
@@ -72,7 +74,8 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
                         R.id.leave -> {
                             GroupHttp(context).leaveGroup(idGroup.toString(), token, object:VolleyCallback {
                                 override fun onResponse(jsonObject: JSONObject) {
-                                    Log.d("LEAVE", jsonObject.toString())
+                                    Log.d("LEAVE OK", jsonObject.toString())
+                                    (context as Activity).finish()
                                 }
 
                                 override fun onError(error: VolleyError) {
