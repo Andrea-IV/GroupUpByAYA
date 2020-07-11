@@ -1,13 +1,21 @@
 package com.andrea.groupup
 
+import android.Manifest
+import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.andrea.groupup.Adapters.GroupAdapter
 import com.andrea.groupup.Adapters.InvitesAdapter
 import com.andrea.groupup.Http.*
@@ -18,13 +26,19 @@ import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
+import net.gotev.uploadservice.MultipartUploadRequest
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.*
 import kotlin.collections.ArrayList
 
 
-class GroupActivity : AppCompatActivity() {
+class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegate {
+    private val REQUEST_CODE = 100
 
+    private lateinit var dialog: BottomSheetDialog
     private lateinit var adapter: GroupAdapter
     private lateinit var searchView: SearchView
     private lateinit var gridView: GridView
@@ -33,6 +47,11 @@ class GroupActivity : AppCompatActivity() {
     private lateinit var context: Context
     private var listItems: ArrayList<Group> = arrayListOf<Group>()
 
+    private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private var storagePermissionGranted = false
+
+    private var uri: Uri? = null
+    private val uploadReceiver = SingleUploadBroadcastReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,10 +73,6 @@ class GroupActivity : AppCompatActivity() {
         menuInit()
     }
 
-    override fun onResume() {
-        super.onResume()
-        groupViewInit()
-    }
     private fun groupViewInit(){
         GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
@@ -109,7 +124,7 @@ class GroupActivity : AppCompatActivity() {
         val addGroup: ImageView = findViewById(R.id.addGroup)
 
         addGroup.setOnClickListener{
-            val dialog = BottomSheetDialog(this)
+            dialog = BottomSheetDialog(this)
             val view = layoutInflater.inflate(R.layout.dialog_create_group, null)
             dialog.setContentView(view)
 
@@ -185,7 +200,7 @@ class GroupActivity : AppCompatActivity() {
     }
 
     private fun invitesDialogInit(context: Context){
-        val dialog = BottomSheetDialog(context)
+        dialog = BottomSheetDialog(context)
         val view = layoutInflater.inflate(R.layout.dialog_friend_invites, null)
 
         FriendHttp(this).getFriendRequests(user.id.toString(), object: VolleyCallbackArray {
@@ -219,9 +234,19 @@ class GroupActivity : AppCompatActivity() {
     }
 
     private fun profileDialogInit(context: Context){
-        val dialog = BottomSheetDialog(context)
+        dialog = BottomSheetDialog(context)
         val view = layoutInflater.inflate(R.layout.dialog_profile, null)
         dialog.setContentView(view)
+
+        view.findViewById<ImageView>(R.id.profile_image).setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+
+        if(!user.pp_link.contains("base")){
+            Picasso.get().load(Constants.BASE_URL + "/" + user.pp_link).into(view.findViewById<ImageView>(R.id.profile_image))
+        }
 
         val username: EditText = view.findViewById(R.id.username)
         username.hint = user.username
@@ -254,7 +279,7 @@ class GroupActivity : AppCompatActivity() {
             emailToSend = email.trim()
         }
 
-        if(password.isNotEmpty() || password.isNotBlank() || newPassword.isNotEmpty() || newPassword.isNotBlank() || confirmPassword.isNotEmpty() || confirmPassword.isNotBlank()){
+        if(password.isNotEmpty() && password.isNotBlank() && newPassword.isNotEmpty() && newPassword.isNotBlank() && confirmPassword.isNotEmpty() && confirmPassword.isNotBlank()){
             if(newPassword == confirmPassword){
                 passwordToSend = true
             }else{
@@ -270,11 +295,20 @@ class GroupActivity : AppCompatActivity() {
     }
 
     private fun editAction(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
+        var editDone = false
         if(passwordToSend){
+            editDone = true
             tryLoginBefore(usernameToSend, emailToSend, passwordToSend, password, newPassword, dialog)
         }else{
+            editDone = true
             val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword)
             callEdit(params, usernameToSend, emailToSend, dialog)
+        }
+        if(uri != null){
+            if(!editDone){
+                dialog.dismiss()
+            }
+            startUpload()
         }
     }
 
@@ -305,6 +339,7 @@ class GroupActivity : AppCompatActivity() {
                 Log.d("EDIT TRY", jsonObject.toString())
                 val gson = Gson()
                 user = gson.fromJson(jsonObject.toString(), User::class.java)
+                dialog.dismiss()
             }
 
             override fun onError(error: VolleyError) {
@@ -347,5 +382,110 @@ class GroupActivity : AppCompatActivity() {
         intent.putExtra("User", user)
         intent.putExtra("Token", token)
         startActivity(intent)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE){
+            uri = data?.data
+
+            if(checkPermission()) {
+                storagePermissionGranted = true
+            } else {
+                requestPermissions()
+            }
+
+            dialog.findViewById<CircleImageView>(R.id.profile_image)?.setImageURI(data?.data)
+        }
+    }
+
+    private fun startUpload(){
+        val uploadId = UUID.randomUUID().toString()
+        uploadReceiver.setDelegate(this)
+        uploadReceiver.setUploadID(uploadId)
+
+        MultipartUploadRequest(this, uploadId, Constants.BASE_URL + "/users/picture")
+            .addFileToUpload(getUriPath(), "picture") //Adding file
+            .addHeader("Authorization", "Bearer $token")
+            .setMaxRetries(2)
+            .startUpload()
+    }
+
+
+    private fun getUriPath(): String? {
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor = managedQuery(uri, projection, null, null, null)
+        startManagingCursor(cursor)
+        val column_index: Int = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        cursor.moveToFirst()
+        return cursor.getString(column_index)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        uploadReceiver.register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        uploadReceiver.unregister(this)
+    }
+
+    override fun onProgress(progress: Int) {
+        //your implementation
+    }
+
+    override fun onProgress(uploadedBytes: Long, totalBytes: Long) {
+        //your implementation
+    }
+
+    override fun onError(exception: java.lang.Exception?) {
+        Log.e("ERROR", exception.toString())
+    }
+
+    override fun onCompleted(serverResponseCode: Int, serverResponseBody: ByteArray?) {
+        if(serverResponseCode.toString() == "201"){
+            UserHttp(this).getByName(user.username, object: VolleyCallbackArray {
+                override fun onResponse(array: JSONArray) {
+                    Log.d("USER", array.toString())
+                    user.pp_link = (array[0] as JSONObject)["pp_link"].toString()
+                }
+
+                override fun onError(error: VolleyError) {
+                    Log.e("USER", "get photo - onError")
+                    Log.e("USER", error.toString())
+                }
+            })
+        }
+    }
+
+    override fun onCancelled() {
+        TODO("Not yet implemented")
+    }
+
+    private fun checkPermission() : Boolean {
+        Log.d("PERMISSION", "checkPermission")
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun requestPermissions() {
+        Log.d("PERMISSION", "requestPermissions")
+        ActivityCompat.requestPermissions(this, permissions,1)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        Log.d("PERMISSION", "onRequestPermissionsResult")
+        if(requestCode == 1) {
+            if(grantResults.isNotEmpty()) {
+                grantResults.forEach {
+                    if(it != PackageManager.PERMISSION_GRANTED) {
+                        storagePermissionGranted = false
+                        return
+                    }
+                }
+                storagePermissionGranted = true;
+            }
+        }
     }
 }

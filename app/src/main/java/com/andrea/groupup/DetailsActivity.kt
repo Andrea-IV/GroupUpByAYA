@@ -1,15 +1,29 @@
 package com.andrea.groupup
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.ViewPager
 import com.andrea.groupup.Adapters.PagerViewAdapter
+import com.andrea.groupup.Http.SingleUploadBroadcastReceiver
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
+import de.hdodenhof.circleimageview.CircleImageView
+import net.gotev.uploadservice.MultipartUploadRequest
+import java.net.URI
+import java.util.*
 
-class DetailsActivity : AppCompatActivity(){
+class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegate{
 
     private lateinit var groupButton: ImageButton
     private lateinit var chatMapButton: ImageButton
@@ -23,6 +37,9 @@ class DetailsActivity : AppCompatActivity(){
     lateinit var group: Group
     lateinit var user: User
     lateinit var token: String
+    private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private var storagePermissionGranted = false
+    private val uploadReceiver = SingleUploadBroadcastReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,4 +131,71 @@ class DetailsActivity : AppCompatActivity(){
             exploreButton.setImageResource(R.drawable.ic_pin_drop_blue)
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        uploadReceiver.register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        uploadReceiver.unregister(this)
+    }
+
+    override fun onProgress(progress: Int) {
+        //your implementation
+    }
+
+    override fun onProgress(uploadedBytes: Long, totalBytes: Long) {
+        //your implementation
+    }
+
+    override fun onError(exception: java.lang.Exception?) {
+        Log.e("ERROR", exception.toString())
+    }
+
+    override fun onCompleted(serverResponseCode: Int, serverResponseBody: ByteArray?) {
+        if(serverResponseCode.toString() == "201"){
+            /*UserHttp(this.requireActivity()).getByName(user.username, object: VolleyCallbackArray {
+                override fun onResponse(array: JSONArray) {
+                    Log.d("USER", array.toString())
+                    user.pp_link = (array[0] as JSONObject)["pp_link"].toString()
+                }
+
+                override fun onError(error: VolleyError) {
+                    Log.e("USER", "get photo - onError")
+                    Log.e("USER", error.toString())
+                }
+            })*/
+        }
+    }
+
+    override fun onCancelled() {
+        TODO("Not yet implemented")
+    }
+
+    fun startUpload(uri: Uri){
+        val uploadId = UUID.randomUUID().toString()
+        uploadReceiver.setDelegate(this)
+        uploadReceiver.setUploadID(uploadId)
+        Log.d("UPLOAD", "HERE")
+
+        MultipartUploadRequest(this, uploadId, Constants.BASE_URL + "/groups/picture")
+            .addFileToUpload(getUriPath(uri), "picture") //Adding file
+            .addHeader("Authorization", "Bearer $token")
+            .addParameter("groupId", group.id.toString())
+            .setMaxRetries(2)
+            .startUpload()
+    }
+
+
+    private fun getUriPath(uri: Uri): String? {
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor = managedQuery(uri, projection, null, null, null)
+        startManagingCursor(cursor)
+        val column_index: Int = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        cursor.moveToFirst()
+        return cursor.getString(column_index)
+    }
+
 }

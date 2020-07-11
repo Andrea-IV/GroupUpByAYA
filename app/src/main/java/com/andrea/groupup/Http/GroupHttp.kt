@@ -15,6 +15,10 @@ class GroupHttp(val context: Context)  {
         http.postWithToken(URL, volleyCallback, JSONObject("{\"name\": \"$name\"}"), token)
     }
 
+    fun editGroup(id: String, name: String, token: String, volleyCallback: VolleyCallback){
+        http.putWithTokenAndParams(URL, volleyCallback, JSONObject("{\"id\": $id,\"name\": \"$name\"}"), token)
+    }
+
     fun getGroupForUser(id: String, volleyCallbackArray: VolleyCallbackArray) {
         http.getAll("$URL/user/$id", volleyCallbackArray)
     }
