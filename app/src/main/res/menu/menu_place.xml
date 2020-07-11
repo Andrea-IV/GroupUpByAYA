@@ -12,4 +12,8 @@
             android:id="@+id/tag"
             android:title="@string/add_tag"
             android:icon="@drawable/ic_tag_primary"/>
+    <item
+            android:id="@+id/deletePlace"
+            android:title="@string/delete_place"
+            android:icon="@drawable/ic_close_primary"/>
 </menu>

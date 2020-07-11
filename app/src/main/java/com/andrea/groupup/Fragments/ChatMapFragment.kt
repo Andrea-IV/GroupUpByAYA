@@ -300,7 +300,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             shareLocationButton.visibility = View.VISIBLE
         }
 
-
         sharePositionHandler = Handler(Looper.getMainLooper())
         sharePositionHandler.post(checkPositionShareStateRunnable)
         friendsLocationHandler = Handler(Looper.getMainLooper())

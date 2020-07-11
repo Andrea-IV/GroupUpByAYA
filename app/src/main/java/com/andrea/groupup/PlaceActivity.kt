@@ -2,6 +2,7 @@ package com.andrea.groupup
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,7 +10,9 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import android.widget.Button
@@ -82,11 +85,13 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             findViewById<ImageView>(R.id.previous).setOnClickListener {
                 changePhoto(false)
             }
+        }else{
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }
 
         var layoutManager = LinearLayoutManager(this)
         layoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        adapter = TagAdapter(localPlace.Tags, this)
+        adapter = TagAdapter(localPlace.Tags, localPlace.id.toString(),this, this.layoutInflater)
         val recyclerView: RecyclerView = findViewById(R.id.listOfTags)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
@@ -187,7 +192,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                 Log.e("TAG", error.toString())
             }
         })
-
     }
 
     private fun createRating(rating: Int){
@@ -317,11 +321,18 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                     dialog.show()
                     true
                 }
+                R.id.deletePlace -> {
+                    deletePlace(it)
+                    true
+                }
                 else -> false
             }
         }
 
         popupMenu.inflate(R.menu.menu_place)
+        if(localPlace.autorId == user.id){
+            popupMenu.menu.findItem(R.id.deletePlace).isVisible = true
+        }
 
         try {
             val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
@@ -335,6 +346,35 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         } finally {
             popupMenu.show()
         }
+    }
+
+    fun deletePlace(it: View){
+        val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
+        val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
+        view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_delete_place)
+        window.contentView = view
+
+        view.findViewById<Button>(R.id.yes).setOnClickListener {
+            window.dismiss()
+            LocalPlaceHttp(this).deletePlace(localPlace.id.toString(), object: VolleyCallback {
+                override fun onResponse(jsonObject: JSONObject) {
+                    Log.d("DELETE PLACE", jsonObject.toString())
+                    finish()
+                }
+
+                override fun onError(error: VolleyError): Unit {
+                    Log.e("DELETE PLACE", "Delete place - onError")
+                    finish()
+                }
+            })
+        }
+        view.findViewById<Button>(R.id.no).setOnClickListener {
+            window.dismiss()
+        }
+        view.findViewById<ConstraintLayout>(R.id.layout).setOnClickListener {
+            window.dismiss()
+        }
+        window.showAtLocation(it, Gravity.CENTER, 0, 0)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -447,7 +487,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     }
 
     private fun searchEvent(date: String){
-        EventHttp(this).getEvents(group.id.toString(), object: VolleyCallbackArray {
+        EventHttp(this).getEvents(group.id.toString(), token, object: VolleyCallbackArray {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(array: JSONArray) {
                 var lpRes = Mapper().mapper<JSONArray, List<Event>>(array)

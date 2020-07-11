@@ -66,29 +66,6 @@ class SelectedAdapter(var items: ArrayList<User>, val userReceived: User, val gr
                 params.height = ((100 * scale + 0.5f).toInt() * event.LocalPlaces.size + 1) + ((5 * scale + 0.5f).toInt() * event.LocalPlaces.size + 1)
                 viewHolder.listOfPlace!!.layoutParams = params
 
-                val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
-                    override fun onMove(recyclerView: RecyclerView, dragged: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                        Log.d("MOVE", "HERE")
-                        val positionDragged = dragged.adapterPosition
-                        val positionTarget = target.adapterPosition
-                        val itemDragged = event.LocalPlaces[positionDragged]
-                        event.LocalPlaces.remove(itemDragged)
-                        event.LocalPlaces.add(positionTarget, itemDragged)
-
-                        adapterPlace.notifyDataSetChanged()
-                        return true
-                    }
-
-                    override fun onSwiped(
-                        viewHolder: RecyclerView.ViewHolder,
-                        direction: Int
-                    ) {
-                        // remove from adapter
-                    }
-                })
-
-                itemTouchHelper.attachToRecyclerView(viewHolder.listOfPlace!!)
-
                 break
             }
         }

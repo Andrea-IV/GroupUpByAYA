@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.andrea.groupup.Constants
 import com.andrea.groupup.Http.EventHttp
 import com.andrea.groupup.Http.LocalPlaceHttp
 import com.andrea.groupup.Http.Mapper.Mapper
@@ -27,6 +28,7 @@ import com.andrea.groupup.R
 import com.android.volley.VolleyError
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.squareup.picasso.Picasso
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
@@ -66,7 +68,8 @@ class PlanAdapter(var events: ArrayList<Event>, var selectedAdapter: SelectedAda
             this.planAdapter = planAdapter
 
             (view.findViewById<View>(R.id.title) as TextView).text = plan?.name
-            (view.findViewById<View>(R.id.rating) as TextView).text = "TO DO"
+            (view.findViewById<View>(R.id.rating) as TextView).text = plan?.Ratings.toString()
+            Picasso.get().load(Constants.BASE_URL + "/" + place.Photos[0].link).into(view.findViewById<ImageView>(R.id.image))
 
             if(event.UserId == user.id){
                 (view.findViewById<View>(R.id.deletePlan) as ImageView).setOnClickListener {

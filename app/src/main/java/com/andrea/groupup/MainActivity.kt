@@ -238,6 +238,9 @@ class MainActivity : AppCompatActivity() {
             override fun onError(error: VolleyError) {
                 Log.e("USER", "login - onError")
                 Log.e("USER", error.javaClass.toString())
+
+                findViewById<TextView>(R.id.error).text = getString(R.string.error_login)
+                findViewById<TextView>(R.id.error).visibility = View.VISIBLE
             }
         })
     }

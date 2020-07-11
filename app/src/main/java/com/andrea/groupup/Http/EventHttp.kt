@@ -12,8 +12,8 @@ class EventHttp(val context: Context)  {
     private val URL = Constants.BASE_URL + "/travels"
     private val http = Http(context)
 
-    fun getEvents(id: String, volleyCallbackArray: VolleyCallbackArray){
-        http.getAll("$URL/?GroupId=$id", volleyCallbackArray)
+    fun getEvents(id: String, token: String, volleyCallbackArray: VolleyCallbackArray){
+        http.getAllWithToken("$URL/group/$id", token, volleyCallbackArray)
     }
 
     fun createEvents(date: String, groupId: String, placeId: String, token: String, volleyCallback: VolleyCallback){
