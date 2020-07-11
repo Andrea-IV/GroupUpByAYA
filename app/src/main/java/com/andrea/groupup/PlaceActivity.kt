@@ -48,6 +48,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private lateinit var user: User
     private lateinit var token: String
     private lateinit var adapter: TagAdapter
+    private var allowed: Boolean = false
     private var from: String? = null
 
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -315,9 +316,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         popupMenu.setOnMenuItemClickListener { item ->
             when(item.itemId){
                 R.id.photo -> {
-                    val intent = Intent(Intent.ACTION_PICK)
-                    intent.type = "image/*"
-                    startActivityForResult(intent, REQUEST_CODE)
+                    checkAllowed(it)
                     true
                 }
                 R.id.event -> {
@@ -381,6 +380,32 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         } finally {
             popupMenu.show()
         }
+    }
+
+    private fun checkAllowed(it: View){
+        val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
+        val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
+        view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_allowed)
+        window.contentView = view
+
+        view.findViewById<Button>(R.id.yes).setOnClickListener {
+            window.dismiss()
+            allowed = true
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<Button>(R.id.no).setOnClickListener {
+            window.dismiss()
+            allowed = false
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<ConstraintLayout>(R.id.layout).setOnClickListener {
+            window.dismiss()
+        }
+        window.showAtLocation(it, Gravity.CENTER, 0, 0)
     }
 
     private fun changeToEdit(){
@@ -496,6 +521,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         MultipartUploadRequest(this, uploadId, Constants.BASE_URL + "/photos")
             .addFileToUpload(getUriPath(), "images") //Adding file
             .addParameter("localPlaceId", localPlace.id.toString())
+            .addParameter("allow_share", allowed.toString())
             .addHeader("Authorization", "Bearer $token")
             .setMaxRetries(2)
             .startUpload()
