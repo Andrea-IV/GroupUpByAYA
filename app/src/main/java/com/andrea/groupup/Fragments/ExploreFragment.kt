@@ -117,6 +117,7 @@ class ExploreFragment : BaseFragment() {
                 R.id.create -> {
                     val intent = Intent(context, CreatePlaceActivity::class.java)
                     intent.putExtra("USER", ACTIVITY.user)
+                    intent.putExtra("GROUP", ACTIVITY.group)
                     intent.putExtra("TOKEN", token)
                     this.startActivity(intent)
                     true

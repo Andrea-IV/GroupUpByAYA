@@ -68,7 +68,7 @@ class CalendarFragment : BaseFragment() {
     }
 
     private fun initEvents(){
-        EventHttp(this.requireContext()).getEvents(group.id.toString(),object: VolleyCallbackArray {
+        EventHttp(this.requireContext()).getEvents(group.id.toString(), token, object: VolleyCallbackArray {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(array: JSONArray) {
                 val lpRes = Mapper().mapper<JSONArray, List<Event>>(array)
@@ -110,6 +110,7 @@ class CalendarFragment : BaseFragment() {
 
             override fun onError(error: VolleyError): Unit {
                 Log.e("EVENTS", "Event - onError")
+                Log.e("EVENTS", error.toString())
             }
         })
     }

@@ -5,7 +5,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class LocalPlace (val id: Int, val name: String, val coordinate_x: String, val coordinate_y: String, val address: String, val opening_hour: String, val closing_hour: String, val date_crea: Date, val autorId: Int, var Photos: ArrayList<Photo>, val Ratings: Double?, val translations: ArrayList<Translation>, var Tags: ArrayList<Tag>, val distance: Double?, var UserRating: Int?, var pos: Int, var TravelLocalplace: TravelLocalplace?): Serializable {
+class LocalPlace (var id: Int, val name: String, val coordinate_x: String, val coordinate_y: String, val address: String, val opening_hour: String, val closing_hour: String, val date_crea: Date, val autorId: Int, var Photos: ArrayList<Photo>, var Ratings: Double?, val translations: ArrayList<Translation>, var Tags: ArrayList<Tag>, val distance: Double?, var UserRating: Int?, var pos: Int, var TravelLocalplace: TravelLocalplace?): Serializable {
 
 
     override fun equals(other: Any?): Boolean {

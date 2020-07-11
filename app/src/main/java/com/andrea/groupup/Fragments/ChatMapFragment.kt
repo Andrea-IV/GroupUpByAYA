@@ -298,10 +298,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         }
 
 
-        sharePositionHandler = Handler(Looper.getMainLooper())
+        /*sharePositionHandler = Handler(Looper.getMainLooper())
         sharePositionHandler.post(checkPositionShareStateRunnable)
         friendsLocationHandler = Handler(Looper.getMainLooper())
-        friendsLocationHandler.post(getFriendsLocationRunnable)
+        friendsLocationHandler.post(getFriendsLocationRunnable)*/
         return view
     }
 

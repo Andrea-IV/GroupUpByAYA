@@ -30,11 +30,22 @@
                 android:id="@+id/back"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:background="@drawable/dot_selected"
+                android:background="@drawable/button_unfocused"
                 android:src="@drawable/ic_close_white"
                 android:layout_marginTop="8dp"
                 android:layout_marginStart="10dp"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+                android:id="@+id/deletePhoto"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/button_unfocused_red"
+                android:src="@drawable/ic_close_white"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView

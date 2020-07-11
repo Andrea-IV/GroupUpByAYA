@@ -28,4 +28,8 @@ class UserHttp(val context: Context)  {
         Log.d("CREATE", body.toString())
         http.post(URL, volleyCallback, body)
     }
+
+    fun editUser(token: String, params: String, volleyCallback: VolleyCallback){
+        http.putWithTokenAndParams(URL, volleyCallback, JSONObject(params), token)
+    }
 }

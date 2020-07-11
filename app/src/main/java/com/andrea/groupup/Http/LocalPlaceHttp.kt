@@ -31,9 +31,21 @@ class LocalPlaceHttp (val context: Context) {
         http.getAll("$URL/lat/$lat/lng/$lng/trad/$lang", volleyCallbackArray)
     }
 
-    fun createPlace(place: LocalPlace, token: String, volleyCallback: VolleyCallback){
-        val params = "{\"name\":\"${place.name}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${place.address}\", \"opening_hour\":\"${place.opening_hour}\", \"closing_hour\":\"${place.closing_hour}\"}"
+    fun createPlace(params: String, token: String, volleyCallback: VolleyCallback){
         http.postWithToken(URL, volleyCallback, JSONObject(params), token)
+    }
+
+    fun deletePlace(localPlaceId: String, volleyCallback: VolleyCallback){
+        http.delete("$URL/$localPlaceId", volleyCallback)
+    }
+
+    fun addTags(tags: ArrayList<Tag>, idLocalPlace: String, volleyCallback: VolleyCallback){
+        var params = "{\"tags\":["
+        for(tag: Tag in tags){
+            params += "\"${tag.name}\","
+        }
+        params = params.substring(0, params.lastIndex) + "]}"
+        http.post("$URL/$idLocalPlace/addTags", volleyCallback, JSONObject(params))
     }
 
     fun addTag(tags: ArrayList<Tag>, newTag: String, idLocalPlace: String, volleyCallback: VolleyCallback){
@@ -42,6 +54,21 @@ class LocalPlaceHttp (val context: Context) {
             params += "\"${tag.name}\","
         }
         params += "$newTag]}"
+        http.post("$URL/$idLocalPlace/addTags", volleyCallback, JSONObject(params))
+    }
+
+    fun deleteTag(tags: ArrayList<Tag>, idLocalPlace: String, volleyCallback: VolleyCallback){
+        var params: String
+        if(tags.isNotEmpty()){
+            params = "{\"tags\":["
+            for(tag: Tag in tags){
+                params += "\"${tag.name}\","
+            }
+            params = params.substring(0, params.lastIndex) + "]}"
+        }else{
+            params = "{\"tags\":[]}"
+        }
+
         http.post("$URL/$idLocalPlace/addTags", volleyCallback, JSONObject(params))
     }
 }

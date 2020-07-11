@@ -14,4 +14,5 @@
     <color name="foggy">#4AFFFFFF</color>
     <color name="map_button_color">#FFFFFF</color>
     <color name="sharePositionButtonStart">#FFBAF1A2</color>
+    <color name="redFocused">#70120C</color>
 </resources>

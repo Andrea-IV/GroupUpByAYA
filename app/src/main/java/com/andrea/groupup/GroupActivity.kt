@@ -10,11 +10,8 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Adapters.GroupAdapter
 import com.andrea.groupup.Adapters.InvitesAdapter
-import com.andrea.groupup.Http.FriendHttp
-import com.andrea.groupup.Http.GroupHttp
+import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
-import com.andrea.groupup.Http.VolleyCallback
-import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.FriendRequest
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
@@ -46,6 +43,11 @@ class GroupActivity : AppCompatActivity() {
 
         context = this
 
+        adapter = GroupAdapter(listItems, context)
+
+        gridView = findViewById(R.id.listOfGroups)
+        gridView.adapter = adapter
+
         groupViewInit()
         searchInit()
         addGroupInit()
@@ -60,11 +62,7 @@ class GroupActivity : AppCompatActivity() {
                 for (group: Group in groupRes){
                     listItems.add(group)
                 }
-
-                adapter = GroupAdapter(listItems, context)
-
-                gridView = findViewById(R.id.listOfGroups)
-                gridView.adapter = adapter
+                adapter.notifyDataSetChanged()
 
                 gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
                     override fun onItemClick(parent: AdapterView<*>, view: View,
@@ -222,10 +220,6 @@ class GroupActivity : AppCompatActivity() {
 
         val username: EditText = view.findViewById(R.id.username)
         username.hint = user.username
-        val firstName: EditText = view.findViewById(R.id.firstname_value)
-        firstName.hint = user.firstname
-        val lastName: EditText = view.findViewById(R.id.lastname_value)
-        lastName.hint = user.lastname
         val email: EditText = view.findViewById(R.id.email_value)
         email.hint = user.email
         val password: EditText = view.findViewById(R.id.password_value)
@@ -235,7 +229,104 @@ class GroupActivity : AppCompatActivity() {
         val confirmPassword: EditText = view.findViewById(R.id.confirm_password_value)
         confirmPassword.hint = this.resources.getString(R.string.confirm_password)
 
+        view.findViewById<Button>(R.id.editButton).setOnClickListener {
+            editProfile(username.text.toString(), email.text.toString(), password.text.toString(), newPassword.text.toString(), confirmPassword.text.toString(), dialog)
+        }
         dialog.show()
+    }
+
+    private fun editProfile(username: String, email: String, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
+        var usernameToSend = ""
+        var emailToSend = ""
+        var passwordToSend = false
+        var error = false
+
+        if(username.isNotEmpty() || username.isNotBlank()){
+            usernameToSend = username.trim()
+        }
+
+        if(email.isNotEmpty() || email.isNotBlank()){
+            emailToSend = email.trim()
+        }
+
+        if(password.isNotEmpty() || password.isNotBlank() || newPassword.isNotEmpty() || newPassword.isNotBlank() || confirmPassword.isNotEmpty() || confirmPassword.isNotBlank()){
+            if(newPassword == confirmPassword){
+                passwordToSend = true
+            }else{
+                error = true
+                dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.errorSamePassword)
+                dialog.findViewById<TextView>(R.id.error)?.visibility = View.VISIBLE
+            }
+        }
+
+        if(!error){
+            editAction(usernameToSend, emailToSend, passwordToSend, password, newPassword, confirmPassword, dialog)
+        }
+    }
+
+    private fun editAction(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
+        if(passwordToSend){
+            tryLoginBefore(usernameToSend, emailToSend, passwordToSend, password, newPassword, confirmPassword, dialog)
+        }else{
+            val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword, confirmPassword)
+            callEdit(params, usernameToSend, emailToSend, dialog)
+        }
+    }
+
+    private fun tryLoginBefore(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
+        UserHttp(this).login(user.username, password, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("LOGIN TRY", jsonObject.toString())
+                token = jsonObject.get("token").toString()
+                val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword, confirmPassword)
+                callEdit(params, usernameToSend, emailToSend, dialog)
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("LOGIN TRY", "login - onError")
+                Log.e("LOGIN TRY", error.toString())
+                dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.error_login)
+                dialog.findViewById<TextView>(R.id.error)?.visibility = View.VISIBLE
+            }
+        })
+    }
+
+    private fun callEdit(params: String, usernameToSend: String, emailToSend: String, dialog: BottomSheetDialog){
+        UserHttp(context).editUser(token, params, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("LOGIN TRY", jsonObject.toString())
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("LOGIN TRY", "login - onError")
+                Log.e("LOGIN TRY", error.toString())
+                if(error.toString().contains("Value [1] of type org.json.JSONArray cannot be converted to JSONObject")){
+                    if(usernameToSend.isNotEmpty() && usernameToSend.isNotBlank()){
+                        user.username = usernameToSend
+                    }
+                    if(emailToSend.isNotEmpty() && emailToSend.isNotBlank()){
+                        user.email = emailToSend
+                    }
+                    dialog.dismiss()
+                }else{
+                    dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.error_login)
+                    dialog.findViewById<TextView>(R.id.error)?.visibility = View.VISIBLE
+                }
+            }
+        })
+    }
+
+    private fun fillParams(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, newPassword: String, confirmPassword:String): String{
+        var params = "{\"id\": ${user.id},"
+        if(usernameToSend.isNotEmpty()){
+            params += "\"username\":\"$usernameToSend\","
+        }
+        if(emailToSend.isNotEmpty()){
+            params += "\"email\":\"$emailToSend\","
+        }
+
+        params = params.substring(0,params.lastIndex) + "}"
+        return params
     }
 
     private fun goToFriends(){

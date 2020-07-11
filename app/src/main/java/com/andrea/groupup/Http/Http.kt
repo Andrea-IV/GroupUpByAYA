@@ -159,6 +159,15 @@ class Http {
         queue.add(request)
     }
 
+    fun deleteWithParam(url: String, callback: VolleyCallback, params: JSONObject): Unit {
+        val request = JsonObjectRequest(Request.Method.DELETE, url, params,
+            { response -> run { callback.onResponse(response)} },
+            { error -> run { callback.onError(error)} }
+        )
+
+        queue.add(request)
+    }
+
     fun deleteWithToken(url: String, callback: VolleyCallback, tokenCode: String): Unit {
         val request = object : JsonObjectRequest(Request.Method.DELETE, url, null,
             { response -> run { callback.onResponse(response)} },
