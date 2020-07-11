@@ -89,7 +89,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private var actualTravel: Travel? = null
     private var travelMarkers = ArrayList<Marker>()
     private var actualPolyline: Polyline? = null
-    private var isTravelDisplayed = true
+    private var isTravelDisplayed = false
     private var createPointMarker: Marker? = null
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
@@ -261,7 +261,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
             if(isTravelDisplayed) {
                 removeMarkers(travelMarkers)
-                actualPolyline?.remove()
+                //actualPolyline?.remove()
                 setLocalPlacesMarkers()
             } else {
                 removeMarkers(localPlacesMarkers)
@@ -518,6 +518,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 todaysTravel = gson.fromJson(jsonObject.toString(), Travel::class.java)
                 actualTravel = todaysTravel
                 displayActualTravel()
+                isTravelDisplayed = true
                 println(todaysTravel)
             }
 
@@ -532,7 +533,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private fun displayActualTravel() {
         if (actualTravel !== null) {
             setTravelMarkers(actualTravel!!.LocalPlaces)
-            generateTravelPolyline()
+            //generateTravelPolyline()
         }
     }
 
@@ -639,8 +640,11 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
                 localPlaces = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                if(!isTravelDisplayed)
+                Log.d(TAG, "IS TRAVEL = " + isTravelDisplayed)
+                if(!isTravelDisplayed) {
+
                     setLocalPlacesMarkers()
+                }
             }
 
             override fun onError(error: VolleyError): Unit {
@@ -653,6 +657,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun setLocalPlacesMarkers() {
+
         localPlaces.forEach {
             localPlacesMarkers.add(addMarker(
                 it.name,
