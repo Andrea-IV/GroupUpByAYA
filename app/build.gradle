@@ -65,4 +65,5 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:20.2.1'
     implementation 'com.karumi:dexter:5.0.0'
     implementation 'com.google.maps.android:android-maps-utils:2.0.3'
+    implementation 'com.applandeo:material-calendar-view:1.8.0-rc01'
 }

@@ -219,6 +219,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "create rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                localPlace.Ratings = jsonObject["globalRating"].toString().toDouble()
+                findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
             }
 
             override fun onError(error: VolleyError) {
@@ -234,6 +236,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "modify rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                localPlace.Ratings = jsonObject["globalRating"].toString().toDouble()
+                findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
             }
 
             override fun onError(error: VolleyError) {
@@ -249,6 +253,14 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "delete rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                if(jsonObject["Ratings"].toString() == "null"){
+                    localPlace.Ratings = null
+                    findViewById<TextView>(R.id.rating).text = getString(R.string.no_rating)
+                }else{
+                    localPlace.Ratings = jsonObject["Ratings"].toString().toDouble()
+                    findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
+                }
+
             }
 
             override fun onError(error: VolleyError) {

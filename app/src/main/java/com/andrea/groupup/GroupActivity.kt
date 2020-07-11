@@ -303,12 +303,14 @@ class GroupActivity : AppCompatActivity() {
         UserHttp(context).editUser(token, params, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("EDIT TRY", jsonObject.toString())
+                val gson = Gson()
+                user = gson.fromJson(jsonObject.toString(), User::class.java)
             }
 
             override fun onError(error: VolleyError) {
                 Log.e("EDIT TRY", "login - onError")
                 Log.e("EDIT TRY", error.toString())
-                if(error.toString().contains("Value [1] of type org.json.JSONArray cannot be converted to JSONObject")){
+                if(error.toString().contains("type org.json.JSONArray cannot be converted to JSONObject")){
                     if(usernameToSend.isNotEmpty() && usernameToSend.isNotBlank()){
                         user.username = usernameToSend
                     }
