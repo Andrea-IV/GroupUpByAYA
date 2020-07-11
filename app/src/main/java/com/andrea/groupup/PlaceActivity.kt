@@ -66,17 +66,17 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         user = intent.getSerializableExtra("USER") as User
         from = intent.getStringExtra("FROM")
 
-//        if("map".equals(from)) {
-//            findViewById<Button>(R.id.button2).visibility = View.GONE
-//        }
-
         findViewById<Button>(R.id.button2).setOnClickListener {
             val data = Intent()
             data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
             setResult(1, data)
             finish()
         }
+
         if(!localPlace.Photos.isNullOrEmpty()){
+            if(localPlace.Photos[actualPhotoIndex].UserId == user.id.toString()){
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            }
             Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
             findViewById<ImageView>(R.id.next).setOnClickListener {
                 changePhoto(true)
@@ -85,8 +85,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             findViewById<ImageView>(R.id.previous).setOnClickListener {
                 changePhoto(false)
             }
-        }else{
-            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }
 
         var layoutManager = LinearLayoutManager(this)
@@ -97,9 +95,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         recyclerView.adapter = adapter
 
         findViewById<TextView>(R.id.title).text = localPlace.name
-//        if(localPlace.translations.isNotEmpty()){
-//            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
-//        }
 
         if(localPlace.Ratings.toString() == "null"){
             findViewById<TextView>(R.id.rating).text = resources.getText(R.string.no_rating)
@@ -126,10 +121,33 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             displayAddRating()
         }
 
+        findViewById<ImageView>(R.id.deletePhoto).setOnClickListener{
+            deletePhoto()
+        }
+
         findViewById<ImageView>(R.id.back).setOnClickListener {
             setResult(0)
             finish()
         }
+    }
+
+    private fun deletePhoto(){
+        Log.d("PHOTO", localPlace.Photos.toString())
+        Log.d("PHOTO", localPlace.Photos[actualPhotoIndex].toString())
+
+        PhotoHttp(this).deletePhoto(localPlace.Photos[actualPhotoIndex].id, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("PHOTO", "Delete Photo - OK")
+                Log.d("PHOTO", jsonObject.toString())
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("PHOTO", "Delete Photo - onError")
+                Log.e("PHOTO", error.toString())
+                changePhoto(true)
+            }
+        })
+        localPlace.Photos.removeAt(actualPhotoIndex)
     }
 
     private fun displayAddRating(){
@@ -259,25 +277,37 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         cs.clone(cl)
         cs.setHorizontalBias(R.id.selected, 0.18f)
         cs.applyTo(cl)
-//        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }
 
     private fun changePhoto(isNext: Boolean){
-        if(isNext){
-            actualPhotoIndex++
-            if(actualPhotoIndex >= localPlace.Photos.size){
-                actualPhotoIndex = 0;
-            }
+        if(localPlace.Photos.size == 0){
+            actualPhotoIndex = 0
+            findViewById<ImageView>(R.id.imageView2).setImageResource(R.drawable.example)
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }else{
-            actualPhotoIndex--
-            if(actualPhotoIndex < 0){
-                actualPhotoIndex = localPlace.Photos.size - 1;
+            if(isNext){
+                actualPhotoIndex++
+                if(actualPhotoIndex >= localPlace.Photos.size){
+                    actualPhotoIndex = 0;
+                }
+            }else{
+                actualPhotoIndex--
+                if(actualPhotoIndex < 0){
+                    actualPhotoIndex = localPlace.Photos.size - 1;
+                }
             }
+
+            if(localPlace.Photos[actualPhotoIndex].UserId == user.id.toString()){
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            }else{
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
+            }
+
+            Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
         }
 
-        Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
     }
 
     private fun initMenu(it: View){
@@ -391,6 +421,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             }
 
             findViewById<ImageView>(R.id.imageView2).setImageURI(data?.data) // handle chosen image
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            actualPhotoIndex = localPlace.Photos.size
         }
     }
 
