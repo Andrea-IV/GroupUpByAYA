@@ -69,6 +69,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     private lateinit var groupHttp: GroupHttp
     private val PLACE_ACTIVITY_RESULT = 4
+    private val MEETINGPOINT_ACTIVITY_RESULT = 3
     private lateinit var userLocation: LatLng
 
     private var isLocalPlaceModeOn: Boolean = false
@@ -93,13 +94,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
 
-//    private lateinit var sharePositionHandler: Handler
-//    private val checkPositionShareStateRunnable =  object: Runnable {
-//        override fun run() {
-//            checkUserPositionShareState()
-//            sharePositionHandler.postDelayed(this, 1000)
-//        }
-//    }
+    private lateinit var sharePositionHandler: Handler
+    private val checkPositionShareStateRunnable =  object: Runnable {
+        override fun run() {
+            checkUserPositionShareState()
+            sharePositionHandler.postDelayed(this, 1000)
+        }
+    }
 
     private lateinit var friendsLocationHandler: Handler
     private val getFriendsLocationRunnable = object: Runnable {
@@ -252,10 +253,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         view.findViewById<FloatingActionButton>(R.id.myLocationButton).setOnClickListener {
             Log.d(TAG, "onMyLocationButtonClick")
 
-            Dexter.withActivity(ACTIVITY)
-                .withPermissions(permissions)
-                .withListener(this)
-                .check()
+            dexter()
         }
 
         view.findViewById<FloatingActionButton>(R.id.myTravelButton).setOnClickListener {
@@ -302,13 +300,19 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             shareLocationButton.visibility = View.VISIBLE
         }
 
-        //sharePositionHandler = Handler(Looper.getMainLooper())
-        //sharePositionHandler.post(checkPositionShareStateRunnable)
+        sharePositionHandler = Handler(Looper.getMainLooper())
+        sharePositionHandler.post(checkPositionShareStateRunnable)
         friendsLocationHandler = Handler(Looper.getMainLooper())
         friendsLocationHandler.post(getFriendsLocationRunnable)
         return view
     }
 
+    private fun dexter() {
+        Dexter.withActivity(ACTIVITY)
+            .withPermissions(permissions)
+            .withListener(this)
+            .check()
+    }
     private fun showLocalPlaceModeDialog() {
         if(!preferences.getBoolean("hasSeensLocalPlaceMapTutorialOnce", false)) {
             createDialolg("Localplace mode",
@@ -426,13 +430,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun checkUserPositionShareState() {
-//        Log.d(TAG, "checkUserPositionShareState")
-//        Log.d(TAG, preferences.getBoolean("isSharing", false).toString())
-        if(preferences.getBoolean("isSharing", false)) {
-            DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), context?.resources!!.getColor(R.color.sharePositionButtonStart))
-        } else {
+        if(!preferences.getBoolean("isSharing", false)) {
             DrawableCompat.setTint(DrawableCompat.wrap(shareLocationButton.background), Color.parseColor("#FFFFFF"))
-//            sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
         }
     }
 
@@ -721,7 +720,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         createPointMarker?.remove()
         val title = if (isLocalPlaceModeOn) "Add a local place" else "Add a meeting point"
         val tag = if (isLocalPlaceModeOn) "create_local_place" else "create_meeting_point"
-        createPointMarker = addMarker(title, null, tag, p0!!, null, true)
+        val hsv = FloatArray(3)
+        Color.colorToHSV(Color.LTGRAY, hsv)
+        createPointMarker = addMarker(title, null, tag, p0!!, BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET), true)
     }
 
     override fun onMapReady(gMap: GoogleMap) {
@@ -732,6 +733,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMapClickListener(mapClickEvent)
 
+        if(checkGps())
+            dexter()
         getTodaysTravel()
     }
 
@@ -809,6 +812,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     }
                 }
             }
+            MEETINGPOINT_ACTIVITY_RESULT -> {
+                if(resultCode == 1) {
+                    val placeLocation = data!!.getParcelableExtra<LatLng>("location")
+                    if(checkGps()) {
+                        getDeviceLocation()
+                        generateDirection(userLocation, placeLocation)
+                    }
+                }
+            }
         }
     }
 
@@ -878,7 +890,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         val creator = ACTIVITY.group.members.filter { it.id == mp.UserId }[0]
         intent.putExtra("user", creator)
         intent.putExtra("creator", creator.id == ACTIVITY.user.id)
-        startActivity(intent)
+        startActivityForResult(intent, MEETINGPOINT_ACTIVITY_RESULT)
     }
 
     //CHAT FUNCTIONS
@@ -965,6 +977,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         view?.myTravelButton?.hide()
         view?.myChatButton?.hide()
         view?.shareLocationButton?.hide()
+        view?.createLocalPlaceButton?.hide()
         mapFragment.view?.bringToFront()
         view?.myChatButton?.setImageResource(R.drawable.chat);
         onMap = false
@@ -984,6 +997,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         view?.myLocationButton?.show()
         view?.myTravelButton?.show()
         view?.myChatButton?.show()
+        view?.createLocalPlaceButton?.show()
         if(checkGps()) {
             view?.shareLocationButton?.show()
         }

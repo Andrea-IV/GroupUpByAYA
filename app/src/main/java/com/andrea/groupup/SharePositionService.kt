@@ -117,6 +117,8 @@ class SharePositionService : Service() {
         contentView.setTextViewText(R.id.notif_title, "Location update")
         contentView.setTextViewText(R.id.notif_content, "Now sharing position with " + groupName)
         contentView.setTextViewText(R.id.notif_time, "01:00:00")
+        contentView.setOnClickPendingIntent(R.id.stopShareLocation, pIntentStop)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationChannel = NotificationChannel(channelId, "test", NotificationManager.IMPORTANCE_HIGH)
             notificationChannel.enableLights(true)
@@ -128,7 +130,7 @@ class SharePositionService : Service() {
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
-                .addAction(R.mipmap.ic_launcher, "Stop", pIntentStop)
+//                .addAction(R.mipmap.ic_launcher, "Stop", pIntentStop)
         } else {
             builder = NotificationCompat.Builder(this)
                 .setCustomContentView(contentView)
