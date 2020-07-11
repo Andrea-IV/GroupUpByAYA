@@ -57,6 +57,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".PlaceActivity"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".EventActivity"

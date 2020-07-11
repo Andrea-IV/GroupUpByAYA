@@ -48,7 +48,6 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
     private var counter: Int = 0
     private lateinit var place: LocalPlace
     private lateinit var title: EditText
-    private lateinit var address: EditText
     private lateinit var description: EditText
     private lateinit var rating: TextView
     private lateinit var adapter: TagAdapter
@@ -71,12 +70,11 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         place.id = 0
 
         title = findViewById(R.id.title)
-        address = findViewById(R.id.address)
         description = findViewById(R.id.description)
+        rating = findViewById(R.id.rating)
         rating = findViewById(R.id.rating)
 
         title.hint = getString(R.string.title_hint)
-        address.hint = getString(R.string.adress_hint)
         description.hint = getString(R.string.description_hint)
         rating.hint = getString(R.string.rating_hint)
 
@@ -229,6 +227,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
 
         popupMenu.inflate(R.menu.menu_place)
         popupMenu.menu.findItem(R.id.event).isVisible = false
+        popupMenu.menu.findItem(R.id.edit).isVisible = false
         popupMenu.menu.findItem(R.id.deletePlace).isVisible = false
 
         try {
@@ -342,8 +341,8 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
     }
 
     private fun createPlace(){
-        if(title.text.isNotEmpty() && address.text.isNotEmpty() && description.text.isNotEmpty() && rating.text.isNotEmpty() && place.Tags.size != 0 && dataPhoto.size != 0){
-            val params = "{\"name\":\"${title.text}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${address.text}\", \"description\":\"${description.text}\", \"groupId\":\"${place.GroupId}\"}"
+        if(title.text.isNotEmpty() && description.text.isNotEmpty() && rating.text.isNotEmpty()){
+            val params = "{\"name\":\"${title.text}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"\", \"description\":\"${description.text}\", \"groupId\":\"${place.GroupId}\"}"
             LocalPlaceHttp(this).createPlace(params, token,  object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     val gson = Gson()

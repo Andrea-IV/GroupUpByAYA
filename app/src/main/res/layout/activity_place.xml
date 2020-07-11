@@ -45,6 +45,7 @@
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/button_unfocused_red"
                 android:src="@drawable/ic_close_white"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -111,6 +112,17 @@
                 android:text="TEST"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+
+        <EditText
+                android:id="@+id/editTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:layout_marginStart="30dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imageView2"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
@@ -168,6 +180,29 @@
                 android:textColor="@color/shadedText"
                 android:textSize="16sp"/>
     </ScrollView>
+
+    <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="250dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="20dp"
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/selected">
+
+        <EditText
+                android:id="@+id/editDescription"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/shadedText"
+                android:textSize="16sp"
+                android:visibility="gone"/>
+    </ScrollView>
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/listOfTags"
             android:layout_height="250dp"

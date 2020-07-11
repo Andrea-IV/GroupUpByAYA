@@ -82,7 +82,7 @@ class PlanAdapter(var events: ArrayList<Event>, var selectedAdapter: SelectedAda
 
         private fun findLocalPlaces(location: Location?, id: Int) {
             if (location != null) {
-                LocalPlaceHttp(itemView.context).getAllWithTradAndDist(Locale.getDefault().language, location.latitude.toString(), location.longitude.toString(), token, object:
+                LocalPlaceHttp(itemView.context).getAllInfoLocalplace(group.id.toString(), location.latitude.toString(), location.longitude.toString(), token, object:
                     VolleyCallbackArray {
                     override fun onResponse(array: JSONArray) {
                         val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)

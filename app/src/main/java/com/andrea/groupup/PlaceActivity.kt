@@ -48,6 +48,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private lateinit var user: User
     private lateinit var token: String
     private lateinit var adapter: TagAdapter
+    private var allowed: Boolean = false
     private var from: String? = null
 
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -66,17 +67,17 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         user = intent.getSerializableExtra("USER") as User
         from = intent.getStringExtra("FROM")
 
-//        if("map".equals(from)) {
-//            findViewById<Button>(R.id.button2).visibility = View.GONE
-//        }
-
         findViewById<Button>(R.id.button2).setOnClickListener {
             val data = Intent()
             data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
             setResult(1, data)
             finish()
         }
+
         if(!localPlace.Photos.isNullOrEmpty()){
+            if(localPlace.Photos[actualPhotoIndex].UserId == user.id.toString()){
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            }
             Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
             findViewById<ImageView>(R.id.next).setOnClickListener {
                 changePhoto(true)
@@ -85,8 +86,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             findViewById<ImageView>(R.id.previous).setOnClickListener {
                 changePhoto(false)
             }
-        }else{
-            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }
 
         var layoutManager = LinearLayoutManager(this)
@@ -97,9 +96,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         recyclerView.adapter = adapter
 
         findViewById<TextView>(R.id.title).text = localPlace.name
-//        if(localPlace.translations.isNotEmpty()){
-//            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
-//        }
 
         if(localPlace.Ratings.toString() == "null"){
             findViewById<TextView>(R.id.rating).text = resources.getText(R.string.no_rating)
@@ -108,6 +104,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
 
         findViewById<TextView>(R.id.distance).text = localPlace.distance.toString() + " km"
+        findViewById<TextView>(R.id.description).text = localPlace.description.toString()
 
         findViewById<TextView>(R.id.descriptionTitle).setOnClickListener {
             focusDescription()
@@ -125,10 +122,33 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             displayAddRating()
         }
 
+        findViewById<ImageView>(R.id.deletePhoto).setOnClickListener{
+            deletePhoto()
+        }
+
         findViewById<ImageView>(R.id.back).setOnClickListener {
             setResult(0)
             finish()
         }
+    }
+
+    private fun deletePhoto(){
+        Log.d("PHOTO", localPlace.Photos.toString())
+        Log.d("PHOTO", localPlace.Photos[actualPhotoIndex].toString())
+
+        PhotoHttp(this).deletePhoto(localPlace.Photos[actualPhotoIndex].id, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("PHOTO", "Delete Photo - OK")
+                Log.d("PHOTO", jsonObject.toString())
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("PHOTO", "Delete Photo - onError")
+                Log.e("PHOTO", error.toString())
+                changePhoto(true)
+            }
+        })
+        localPlace.Photos.removeAt(actualPhotoIndex)
     }
 
     private fun displayAddRating(){
@@ -199,6 +219,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "create rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                localPlace.Ratings = jsonObject["globalRating"].toString().toDouble()
+                findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
             }
 
             override fun onError(error: VolleyError) {
@@ -214,6 +236,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "modify rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                localPlace.Ratings = jsonObject["globalRating"].toString().toDouble()
+                findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
             }
 
             override fun onError(error: VolleyError) {
@@ -229,6 +253,14 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("RATING", "delete rating - OK")
                 Log.d("RATING", jsonObject.toString())
+                if(jsonObject["Ratings"].toString() == "null"){
+                    localPlace.Ratings = null
+                    findViewById<TextView>(R.id.rating).text = getString(R.string.no_rating)
+                }else{
+                    localPlace.Ratings = jsonObject["Ratings"].toString().toDouble()
+                    findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
+                }
+
             }
 
             override fun onError(error: VolleyError) {
@@ -258,25 +290,37 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         cs.clone(cl)
         cs.setHorizontalBias(R.id.selected, 0.18f)
         cs.applyTo(cl)
-//        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }
 
     private fun changePhoto(isNext: Boolean){
-        if(isNext){
-            actualPhotoIndex++
-            if(actualPhotoIndex >= localPlace.Photos.size){
-                actualPhotoIndex = 0;
-            }
+        if(localPlace.Photos.size == 0){
+            actualPhotoIndex = 0
+            findViewById<ImageView>(R.id.imageView2).setImageResource(R.drawable.example)
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }else{
-            actualPhotoIndex--
-            if(actualPhotoIndex < 0){
-                actualPhotoIndex = localPlace.Photos.size - 1;
+            if(isNext){
+                actualPhotoIndex++
+                if(actualPhotoIndex >= localPlace.Photos.size){
+                    actualPhotoIndex = 0;
+                }
+            }else{
+                actualPhotoIndex--
+                if(actualPhotoIndex < 0){
+                    actualPhotoIndex = localPlace.Photos.size - 1;
+                }
             }
+
+            if(localPlace.Photos[actualPhotoIndex].UserId == user.id.toString()){
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            }else{
+                findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
+            }
+
+            Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
         }
 
-        Picasso.get().load(Constants.BASE_URL + "/" + localPlace.Photos[actualPhotoIndex].link).into(findViewById<ImageView>(R.id.imageView2))
     }
 
     private fun initMenu(it: View){
@@ -284,9 +328,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         popupMenu.setOnMenuItemClickListener { item ->
             when(item.itemId){
                 R.id.photo -> {
-                    val intent = Intent(Intent.ACTION_PICK)
-                    intent.type = "image/*"
-                    startActivityForResult(intent, REQUEST_CODE)
+                    checkAllowed(it)
                     true
                 }
                 R.id.event -> {
@@ -321,6 +363,10 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                     dialog.show()
                     true
                 }
+                R.id.edit -> {
+                    changeToEdit()
+                    true
+                }
                 R.id.deletePlace -> {
                     deletePlace(it)
                     true
@@ -348,7 +394,91 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
     }
 
-    fun deletePlace(it: View){
+    private fun checkAllowed(it: View){
+        val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
+        val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
+        view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_allowed)
+        window.contentView = view
+
+        view.findViewById<Button>(R.id.yes).setOnClickListener {
+            window.dismiss()
+            allowed = true
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<Button>(R.id.no).setOnClickListener {
+            window.dismiss()
+            allowed = false
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<ConstraintLayout>(R.id.layout).setOnClickListener {
+            window.dismiss()
+        }
+        window.showAtLocation(it, Gravity.CENTER, 0, 0)
+    }
+
+    private fun changeToEdit(){
+        findViewById<TextView>(R.id.title).visibility = View.GONE
+        findViewById<EditText>(R.id.editTitle).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editTitle).setText(findViewById<TextView>(R.id.title).text)
+
+        findViewById<TextView>(R.id.description).visibility = View.GONE
+        findViewById<EditText>(R.id.editDescription).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editDescription).setText(findViewById<TextView>(R.id.description).text)
+
+        findViewById<Button>(R.id.button2).text = getString(R.string.finish_edit)
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            editAction()
+        }
+
+        findViewById<ImageView>(R.id.back).setOnClickListener {
+            closeEdit()
+        }
+    }
+
+    private fun editAction(){
+        closeEdit()
+        findViewById<TextView>(R.id.title).text = findViewById<EditText>(R.id.editTitle).text
+        findViewById<TextView>(R.id.description).text = findViewById<EditText>(R.id.editDescription).text
+        localPlace.name = findViewById<TextView>(R.id.title).text.toString()
+        localPlace.description = findViewById<TextView>(R.id.description).text.toString()
+
+        LocalPlaceHttp(this).updatePlace("{\"id\":${localPlace.id}, \"name\":\"${localPlace.name}\", \"description\":\"${localPlace.description}\"}", token, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("EDIT PLACE", jsonObject.toString())
+            }
+
+            override fun onError(error: VolleyError): Unit {
+                Log.e("EDIT PLACE", "Edit place - onError")
+            }
+        })
+    }
+
+    private fun closeEdit(){
+        findViewById<TextView>(R.id.title).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editTitle).visibility = View.GONE
+
+        findViewById<TextView>(R.id.description).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editDescription).visibility = View.GONE
+
+        findViewById<Button>(R.id.button2).text = getString(R.string.toMap)
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            val data = Intent()
+            data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
+            setResult(1, data)
+            finish()
+        }
+
+        findViewById<ImageView>(R.id.back).setOnClickListener {
+            setResult(0)
+            finish()
+        }
+    }
+
+    private fun deletePlace(it: View){
         val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
         val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
         view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_delete_place)
@@ -390,6 +520,8 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             }
 
             findViewById<ImageView>(R.id.imageView2).setImageURI(data?.data) // handle chosen image
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.VISIBLE
+            actualPhotoIndex = localPlace.Photos.size
         }
     }
 
@@ -401,6 +533,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         MultipartUploadRequest(this, uploadId, Constants.BASE_URL + "/photos")
             .addFileToUpload(getUriPath(), "images") //Adding file
             .addParameter("localPlaceId", localPlace.id.toString())
+            .addParameter("allow_share", allowed.toString())
             .addHeader("Authorization", "Bearer $token")
             .setMaxRetries(2)
             .startUpload()

@@ -23,6 +23,11 @@ class UserHttp(val context: Context)  {
         http.post("$URL/login", volleyCallback, body)
     }
 
+    fun baseLogin(username: String, password: String, volleyCallback: VolleyCallback) {
+        val body = JSONObject("{\"username\": \"$username\", \"password\": \"$password\"}")
+        http.post("$URL/login", volleyCallback, body)
+    }
+
     fun createUser(email: String, username: String, password: String, passwordConfirm: String, volleyCallback: VolleyCallback) {
         val body = JSONObject("{\"email\": \"$email\", \"firstname\": \"firstname\", \"lastname\": \"lastname\", \"username\": \"$username\", \"password1\": \"$password\", \"password2\": \"$passwordConfirm\", \"admin\": 0}")
         Log.d("CREATE", body.toString())

@@ -1,5 +1,6 @@
 package com.andrea.groupup.Fragments
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -19,10 +20,15 @@ import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.*
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
+import com.applandeo.materialcalendarview.CalendarView
+import com.applandeo.materialcalendarview.EventDay
+import com.applandeo.materialcalendarview.listeners.OnDayClickListener
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+
 
 /**
  * A simple [Fragment] subclass.
@@ -106,6 +112,31 @@ class CalendarFragment : BaseFragment() {
                 }
                 Collections.sort(listItems, EventDisplayComparator())
                 adapter.notifyDataSetChanged()
+
+                val events = ArrayList<EventDay>()
+                val calendar = Calendar.getInstance()
+                for(eventDisplay in listItems){
+                    var date: String = eventDisplay.date
+
+                    val year = date.substring(0, date.indexOf("-"))
+                    date = date.substring(date.indexOf("-") + 1, date.lastIndex + 1)
+                    val month = date.substring(0, date.indexOf("-"))
+                    val day = date.substring(date.indexOf("-") + 1, date.lastIndex + 1)
+                    calendar.set(year.toInt(), month.toInt() - 1, day.toInt())
+                }
+                events.add(EventDay(calendar, R.drawable.ic_place_primary, R.color.colorPrimary));
+
+                val calendarView = mView.findViewById<CalendarView>(R.id.calendar)
+                calendarView.setEvents(events);
+                calendarView.setOnDayClickListener(object : OnDayClickListener {
+                    @SuppressLint("SimpleDateFormat")
+                    override fun onDayClick(eventDay: EventDay) {
+                        val clickedDayCalendar = eventDay.calendar
+                        val sdf = SimpleDateFormat("yyyy-MM-dd")
+
+                        adapter.displayOnlyDate(sdf.format(clickedDayCalendar.time).toString())
+                    }
+                })
             }
 
             override fun onError(error: VolleyError): Unit {

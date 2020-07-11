@@ -10,21 +10,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="@drawable/top_shape_title"
-                android:paddingStart="20dp"
-                android:gravity="center_vertical">
-            <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:textColor="@android:color/black"
-                    android:text="@string/schedule_title"/>
-        </LinearLayout>
 
-        <CalendarView
+        <com.applandeo.materialcalendarview.CalendarView
+                android:id="@+id/calendar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
@@ -32,6 +20,7 @@
                 android:id="@+id/listOfEvents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:divider="@android:color/transparent"
                 android:dividerHeight="20.0sp"/>
     </LinearLayout>

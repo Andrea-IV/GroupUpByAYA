@@ -19,10 +19,15 @@ import com.andrea.groupup.R
 import de.hdodenhof.circleimageview.CircleImageView
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
 class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
     ArrayAdapter<EventDisplay>(ctx,
         R.layout.list_of_events, items) {
+
+    var arrayList = items
+    var tempList = ArrayList<EventDisplay>()
 
     //view holder is used to prevent findViewById calls
     private class EventViewHolder {
@@ -33,6 +38,11 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
     @RequiresApi(Build.VERSION_CODES.O)
     override fun getView(i: Int, view: View?, viewGroup: ViewGroup): View {
         var view = view
+
+        tempList.clear()
+        for (i in 0 until arrayList.size) {
+            tempList.add(arrayList[i])
+        }
 
         val viewHolder: EventViewHolder
 
@@ -72,5 +82,27 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
         view.tag = viewHolder
 
         return view
+    }
+
+    fun displayOnlyDate(date: String){
+        Log.d("DATE", date)
+        arrayList.clear()
+
+        if (date.isEmpty()) {
+            arrayList.addAll(tempList)
+        } else {
+            for (i in 0 until tempList.size) {
+                Log.d("DATE", tempList[i].date)
+                if (tempList[i].date!!.toLowerCase(Locale.getDefault()).contains(date)) {
+                    arrayList.add(tempList[i])
+                }
+            }
+        }
+        notifyDataSetChanged()
+    }
+
+    fun filter(text: String?) {
+        val text = text!!.toLowerCase(Locale.getDefault())
+
     }
 }

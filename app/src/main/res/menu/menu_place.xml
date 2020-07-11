@@ -13,6 +13,10 @@
             android:title="@string/add_tag"
             android:icon="@drawable/ic_tag_primary"/>
     <item
+            android:id="@+id/edit"
+            android:title="@string/edit_place"
+            android:icon="@drawable/ic_edit"/>
+    <item
             android:id="@+id/deletePlace"
             android:title="@string/delete_place"
             android:icon="@drawable/ic_close_primary"/>
