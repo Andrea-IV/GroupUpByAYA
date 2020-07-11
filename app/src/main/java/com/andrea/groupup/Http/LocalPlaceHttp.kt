@@ -15,6 +15,10 @@ class LocalPlaceHttp (val context: Context) {
         http.getAll("$URL/", volleyCallbackArray)
     }
 
+    fun getByGroup(groupId: Int, lat: Double?, lng: Double?, token: String, volleyCallbackArray: VolleyCallbackArray) {
+        http.getAllWithToken("$URL/group/$groupId?lat=$lat&lng=$lng", token, volleyCallbackArray)
+    }
+
     fun getOne(id:String, volleyCallback: VolleyCallback) {
         http.getOne("$URL/$id", volleyCallback)
     }
@@ -32,7 +36,7 @@ class LocalPlaceHttp (val context: Context) {
     }
 
     fun createPlace(place: LocalPlace, token: String, volleyCallback: VolleyCallback){
-        val params = "{\"name\":\"${place.name}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${place.address}\", \"opening_hour\":\"${place.opening_hour}\", \"closing_hour\":\"${place.closing_hour}\"}"
+        val params = "{\"name\":\"${place.name}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${place.address}\", \"description\":\"${place.description}\", \"groupId\":\"${place.GroupId}\"}"
         http.postWithToken(URL, volleyCallback, JSONObject(params), token)
     }
 

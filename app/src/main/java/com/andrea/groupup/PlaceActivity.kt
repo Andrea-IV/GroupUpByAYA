@@ -92,9 +92,9 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         recyclerView.adapter = adapter
 
         findViewById<TextView>(R.id.title).text = localPlace.name
-        if(localPlace.translations.isNotEmpty()){
-            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
-        }
+//        if(localPlace.translations.isNotEmpty()){
+//            findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
+//        }
 
         if(localPlace.Ratings.toString() == "null"){
             findViewById<TextView>(R.id.rating).text = resources.getText(R.string.no_rating)
@@ -254,7 +254,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         cs.clone(cl)
         cs.setHorizontalBias(R.id.selected, 0.18f)
         cs.applyTo(cl)
-        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
+//        findViewById<TextView>(R.id.description).text = localPlace.translations[0].content
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }

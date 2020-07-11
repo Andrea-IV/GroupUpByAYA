@@ -65,7 +65,7 @@ import kotlin.collections.HashMap
 
 private const val TAG = "MAP"
 
-class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
+class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCameraIdleListener,*/ GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
 
     private lateinit var groupHttp: GroupHttp
     private val PLACE_ACTIVITY_RESULT = 4
@@ -146,6 +146,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
     ): View? {
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
+
+        getLocalPlaces(null)
 
         groupHttp = GroupHttp(ACTIVITY)
 
@@ -601,6 +603,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
                 if (current.isLocationAvailable) {
                     mFusedLocationProviderClient.lastLocation.addOnSuccessListener {
                         userLocation = LatLng(it.latitude, it.longitude)
+                        getLocalPlaces(userLocation)
                         moveCamera(userLocation, 9.5f)
                     }
                 } else {
@@ -631,9 +634,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         return gps_enabled && network_enabled
     }
 
-    private fun getLocalPlaces(target: LatLng) {
-        Log.d(TAG, "getLocalPlaces = " + target.latitude + " " + target.longitude)
-        LocalPlaceHttp(this.requireContext()).getByLatLngAndTrad(target.latitude.toString(), target.longitude.toString(), Locale.getDefault().language, object: VolleyCallbackArray {
+    private fun getLocalPlaces(target: LatLng?) {
+        Log.d(TAG, "getLocalPlaces = " + target?.latitude + " " + target?.longitude)
+        LocalPlaceHttp(this.requireContext()).getByGroup(ACTIVITY.group.id, target?.latitude, target?.longitude, ACTIVITY.token, object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
@@ -645,6 +648,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
             override fun onError(error: VolleyError): Unit {
                 Log.e(TAG, "getLocalPlaces - onError")
                 Log.e(TAG, error.javaClass.toString())
+                Log.d(TAG, error.toString())
+                Log.d(TAG, error.message)
             }
         })
     }
@@ -653,7 +658,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         localPlaces.forEach {
             localPlacesMarkers.add(addMarker(
                 it.name,
-                it.opening_hour + " - " + it.closing_hour,
+                null,
                 it.id.toString(),
                 LatLng(it.coordinate_x.toDouble(), it.coordinate_y.toDouble()),
                 null,
@@ -724,18 +729,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         Log.d(TAG, "onMapReady")
         mMap = gMap
         mMap.uiSettings.isMyLocationButtonEnabled = false;
-        mMap.setOnCameraIdleListener(this)
+//        mMap.setOnCameraIdleListener(this)
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMapClickListener(mapClickEvent)
-
-//        if(checkPermission()) {
-//            mLocationPermissionGranted = true
-//            mMap.isMyLocationEnabled = true
-
-//            getDeviceLocation();
-//        } else {
-//            requestPermissions()
-//        }
 
         getTodaysTravel()
     }
@@ -767,49 +763,20 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnCameraId
         return true
     }
 
-    override fun onCameraIdle() {
-        Log.d(TAG, "OnCameraIdle = " + mMap.cameraPosition.zoom)
-        Log.d(TAG, "OnCameraIdle = " + mMap.cameraPosition.target.latitude + " " + mMap.cameraPosition.target.longitude)
-        if(mMap.cameraPosition.zoom >= 9.5f) {
-            getLocalPlaces(mMap.cameraPosition.target)
-        } else {
-            removeMarkers(localPlacesMarkers)
-        }
-    }
+//    override fun onCameraIdle() {
+//        Log.d(TAG, "OnCameraIdle = " + mMap.cameraPosition.zoom)
+//        Log.d(TAG, "OnCameraIdle = " + mMap.cameraPosition.target.latitude + " " + mMap.cameraPosition.target.longitude)
+//        if(mMap.cameraPosition.zoom >= 9.5f) {
+//            getLocalPlaces(mMap.cameraPosition.target)
+//        } else {
+//            removeMarkers(localPlacesMarkers)
+//        }
+//    }
 
     private fun moveCamera(latLng: LatLng, zoom: Float) {
         Log.d(TAG, "Moving camera to lat " + latLng.latitude + ", lng " + latLng.longitude);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
-
-//    private fun checkPermission() : Boolean {
-//        Log.d(TAG, "checkPermission")
-//        return (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-//                && ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-//    }
-
-//    private fun requestPermissions() {
-//        Log.d(TAG, "requestPermissions")
-//        ActivityCompat.requestPermissions(this.requireActivity(), this.permissions,1)
-//    }
-
-//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-//        Log.d(TAG, "onRequestPermissionsResult")
-//        if(requestCode == 1) {
-//            if(grantResults.isNotEmpty()) {
-//                grantResults.forEach {
-//                    if(it != PackageManager.PERMISSION_GRANTED) {
-//                        mLocationPermissionGranted = false
-//                        return
-//                    }
-//                }
-//                mLocationPermissionGranted = true;
-//                mMap.isMyLocationEnabled = true
-//                getDeviceLocation()
-//
-//            }
-//        }
-//    }
 
     private fun displayMeetingPointCreateActivity(marker: Marker) {
         Log.d(TAG, "displayMeetingPointCreateActivity")
