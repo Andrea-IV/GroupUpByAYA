@@ -108,6 +108,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
 
         findViewById<TextView>(R.id.distance).text = localPlace.distance.toString() + " km"
+        findViewById<TextView>(R.id.description).text = localPlace.description.toString()
 
         findViewById<TextView>(R.id.descriptionTitle).setOnClickListener {
             focusDescription()

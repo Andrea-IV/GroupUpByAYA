@@ -145,7 +145,7 @@ class ExploreFragment : BaseFragment() {
     private fun initLocalPlaces(location: Location?) {
         Log.d("LOCALPLACE", location.toString())
         if (location != null) {
-            LocalPlaceHttp(this.requireContext()).getAllWithTradAndDist(Locale.getDefault().language, location.latitude.toString(), location.longitude.toString(), token, object: VolleyCallbackArray {
+            LocalPlaceHttp(this.requireContext()).getAllInfoLocalplace(group.id.toString(), location.latitude.toString(), location.longitude.toString(), token, object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
                     Log.d("LOCALPLACE", array.toString())
                     val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
