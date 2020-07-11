@@ -67,7 +67,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         token = intent.getStringExtra("TOKEN")
         location = intent.getParcelableExtra("location") as LatLng
 
-        place = LocalPlace(0, "", "", "", "", "", "", Date(), user.id, ArrayList<Photo>(), 0.0, ArrayList<Translation>(), ArrayList<Tag>(), 0.0, 0, 0, null)
+        place = LocalPlace(0, "", "", "", "",  "", Date(), user.id, group.id, ArrayList<Photo>(), 0.0, ArrayList<Tag>(), 0.0, 0, 0, null)
         place.id = 0
 
         title = findViewById(R.id.title)
@@ -343,7 +343,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
 
     private fun createPlace(){
         if(title.text.isNotEmpty() && address.text.isNotEmpty() && description.text.isNotEmpty() && rating.text.isNotEmpty() && place.Tags.size != 0 && dataPhoto.size != 0){
-            val params = "{\"name\":\"${title.text}\", \"coordinate_x\":\"0\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${address.text}\", \"opening_hour\":\"${place.opening_hour}\", \"closing_hour\":\"${place.closing_hour}\"}"
+            val params = "{\"name\":\"${title.text}\", \"coordinate_x\":\"${place.coordinate_x}\", \"coordinate_y\":\"${place.coordinate_y}\", \"address\":\"${address.text}\", \"description\":\"${description.text}\", \"groupId\":\"${place.GroupId}\"}"
             LocalPlaceHttp(this).createPlace(params, token,  object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {
                     val gson = Gson()
