@@ -265,25 +265,27 @@ class GroupActivity : AppCompatActivity() {
         }
 
         if(!error){
-            editAction(usernameToSend, emailToSend, passwordToSend, password, newPassword, confirmPassword, dialog)
+            editAction(usernameToSend, emailToSend, passwordToSend, password, newPassword, dialog)
         }
     }
 
-    private fun editAction(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
+    private fun editAction(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
         if(passwordToSend){
-            tryLoginBefore(usernameToSend, emailToSend, passwordToSend, password, newPassword, confirmPassword, dialog)
+            tryLoginBefore(usernameToSend, emailToSend, passwordToSend, password, newPassword, dialog)
         }else{
-            val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword, confirmPassword)
+            val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword)
             callEdit(params, usernameToSend, emailToSend, dialog)
         }
     }
 
-    private fun tryLoginBefore(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
-        /*UserHttp(this).login(user.username, password, object: VolleyCallback {
+    private fun tryLoginBefore(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
+        UserHttp(this).baseLogin(user.username, password, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("LOGIN TRY", jsonObject.toString())
                 token = jsonObject.get("token").toString()
-                val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword, confirmPassword)
+                token = token.substring(token.indexOf(" ") + 1, token.length)
+
+                val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword)
                 callEdit(params, usernameToSend, emailToSend, dialog)
             }
 
@@ -293,18 +295,19 @@ class GroupActivity : AppCompatActivity() {
                 dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.error_login)
                 dialog.findViewById<TextView>(R.id.error)?.visibility = View.VISIBLE
             }
-        })*/
+        })
     }
 
     private fun callEdit(params: String, usernameToSend: String, emailToSend: String, dialog: BottomSheetDialog){
+        Log.d("PARAMS", params)
         UserHttp(context).editUser(token, params, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
-                Log.d("LOGIN TRY", jsonObject.toString())
+                Log.d("EDIT TRY", jsonObject.toString())
             }
 
             override fun onError(error: VolleyError) {
-                Log.e("LOGIN TRY", "login - onError")
-                Log.e("LOGIN TRY", error.toString())
+                Log.e("EDIT TRY", "login - onError")
+                Log.e("EDIT TRY", error.toString())
                 if(error.toString().contains("Value [1] of type org.json.JSONArray cannot be converted to JSONObject")){
                     if(usernameToSend.isNotEmpty() && usernameToSend.isNotBlank()){
                         user.username = usernameToSend
@@ -321,13 +324,16 @@ class GroupActivity : AppCompatActivity() {
         })
     }
 
-    private fun fillParams(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, newPassword: String, confirmPassword:String): String{
+    private fun fillParams(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, newPassword: String): String{
         var params = "{\"id\": ${user.id},"
         if(usernameToSend.isNotEmpty()){
             params += "\"username\":\"$usernameToSend\","
         }
         if(emailToSend.isNotEmpty()){
             params += "\"email\":\"$emailToSend\","
+        }
+        if(passwordToSend){
+            params += "\"password\":\"$newPassword\","
         }
 
         params = params.substring(0,params.lastIndex) + "}"
