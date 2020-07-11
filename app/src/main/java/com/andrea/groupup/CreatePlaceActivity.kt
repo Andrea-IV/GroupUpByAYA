@@ -72,6 +72,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         title = findViewById(R.id.title)
         description = findViewById(R.id.description)
         rating = findViewById(R.id.rating)
+        rating = findViewById(R.id.rating)
 
         title.hint = getString(R.string.title_hint)
         description.hint = getString(R.string.description_hint)
@@ -226,6 +227,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
 
         popupMenu.inflate(R.menu.menu_place)
         popupMenu.menu.findItem(R.id.event).isVisible = false
+        popupMenu.menu.findItem(R.id.edit).isVisible = false
         popupMenu.menu.findItem(R.id.deletePlace).isVisible = false
 
         try {

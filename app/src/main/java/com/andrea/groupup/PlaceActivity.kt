@@ -352,6 +352,10 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                     dialog.show()
                     true
                 }
+                R.id.edit -> {
+                    changeToEdit()
+                    true
+                }
                 R.id.deletePlace -> {
                     deletePlace(it)
                     true
@@ -379,7 +383,65 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
     }
 
-    fun deletePlace(it: View){
+    private fun changeToEdit(){
+        findViewById<TextView>(R.id.title).visibility = View.GONE
+        findViewById<EditText>(R.id.editTitle).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editTitle).setText(findViewById<TextView>(R.id.title).text)
+
+        findViewById<TextView>(R.id.description).visibility = View.GONE
+        findViewById<EditText>(R.id.editDescription).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editDescription).setText(findViewById<TextView>(R.id.description).text)
+
+        findViewById<Button>(R.id.button2).text = getString(R.string.finish_edit)
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            editAction()
+        }
+
+        findViewById<ImageView>(R.id.back).setOnClickListener {
+            closeEdit()
+        }
+    }
+
+    private fun editAction(){
+        closeEdit()
+        findViewById<TextView>(R.id.title).text = findViewById<EditText>(R.id.editTitle).text
+        findViewById<TextView>(R.id.description).text = findViewById<EditText>(R.id.editDescription).text
+        localPlace.name = findViewById<TextView>(R.id.title).text.toString()
+        localPlace.description = findViewById<TextView>(R.id.description).text.toString()
+
+        LocalPlaceHttp(this).updatePlace("{\"id\":${localPlace.id}, \"name\":\"${localPlace.name}\", \"description\":\"${localPlace.description}\"}", token, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("EDIT PLACE", jsonObject.toString())
+            }
+
+            override fun onError(error: VolleyError): Unit {
+                Log.e("EDIT PLACE", "Edit place - onError")
+            }
+        })
+    }
+
+    private fun closeEdit(){
+        findViewById<TextView>(R.id.title).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editTitle).visibility = View.GONE
+
+        findViewById<TextView>(R.id.description).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.editDescription).visibility = View.GONE
+
+        findViewById<Button>(R.id.button2).text = getString(R.string.toMap)
+        findViewById<Button>(R.id.button2).setOnClickListener {
+            val data = Intent()
+            data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
+            setResult(1, data)
+            finish()
+        }
+
+        findViewById<ImageView>(R.id.back).setOnClickListener {
+            setResult(0)
+            finish()
+        }
+    }
+
+    private fun deletePlace(it: View){
         val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
         val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
         view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_delete_place)

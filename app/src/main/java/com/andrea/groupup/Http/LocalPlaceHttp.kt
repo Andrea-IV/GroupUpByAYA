@@ -39,6 +39,10 @@ class LocalPlaceHttp (val context: Context) {
         http.postWithToken(URL, volleyCallback, JSONObject(params), token)
     }
 
+    fun updatePlace(params: String, token: String, volleyCallback: VolleyCallback){
+        http.putWithTokenAndParams(URL, volleyCallback, JSONObject(params), token)
+    }
+
     fun deletePlace(localPlaceId: String, volleyCallback: VolleyCallback){
         http.delete("$URL/$localPlaceId", volleyCallback)
     }
