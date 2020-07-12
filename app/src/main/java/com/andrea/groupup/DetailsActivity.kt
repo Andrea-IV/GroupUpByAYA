@@ -74,27 +74,27 @@ class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Deleg
 //    lateinit var meetingPointHttp: MeetingPointHttp
 
     private fun getGroup() {
-        groupHttp
-            .getById(group.id, object: VolleyCallback {
-                override fun onResponse(jsonObject: JSONObject) {
-                    val group = Mapper().mapper<JSONObject, Group>(jsonObject)
-                    var isIn = false
-                    group.members.forEach {
-                        if(user.id == it.id) {
-                            isIn = true
-                        }
-                    }
+        groupHttp.getById(group.id, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                val group = Mapper().mapper<JSONObject, Group>(jsonObject)
+                var isIn = false
 
-                    if(!isIn) {
-                        finish()
+                for(i: Int in 0 until group.members.size){
+                    if(user.id == group.members[i].id) {
+                        isIn = true
                     }
                 }
 
-                override fun onError(error: VolleyError) {
-                    Log.e(TAG, error.toString())
+                if(!isIn) {
+                    finish()
                 }
+            }
 
-            })
+            override fun onError(error: VolleyError) {
+                Log.e(TAG, error.toString())
+            }
+
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
