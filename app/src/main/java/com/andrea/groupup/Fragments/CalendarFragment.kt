@@ -79,7 +79,6 @@ class CalendarFragment : BaseFragment() {
     }
 
     private fun initEvents(){
-        Log.d("USe", "USE")
         EventHttp(this.requireContext()).getEvents(group.id.toString(), token, object: VolleyCallbackArray {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(array: JSONArray) {
