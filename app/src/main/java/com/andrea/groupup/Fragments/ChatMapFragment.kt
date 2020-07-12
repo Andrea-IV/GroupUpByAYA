@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -994,6 +995,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     }
 
+    private fun openGoogleMap(lat: Double, lng: Double) {
+        val gmmIntentUri = Uri.parse("google.navigation:q=$lat,$lng")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+        mapIntent.setPackage("com.google.android.apps.maps")
+        startActivity(mapIntent)
+    }
+
     private fun displayMeetingPointShowActivity(marker: Marker) {
         Log.d(TAG, "displayMeetingPointShowActivity")
 //        val intent = Intent(context, ShowMeetingPointActivity::class.java)
@@ -1016,11 +1024,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             val direction = view.findViewById<TextView>(R.id.show_meeting_point_direction)
             direction.visibility = View.VISIBLE
             direction.setOnClickListener {
-                getDeviceLocation()
-                println("user = " + userLocation)
-                println("marker = " + marker.position)
-                generateDirection(userLocation!!, marker.position)
                 dialog.hide()
+                createDialolg("Direction", "Would you like to show the direction on Google map or on our application ?", "Google Map", DialogInterface.OnClickListener { dialog, which ->
+                    dialog.dismiss()
+                    openGoogleMap(marker.position.latitude, marker.position.longitude)
+                }, "Here", DialogInterface.OnClickListener { dialog, which ->
+                    dialog.dismiss()
+                    getDeviceLocation()
+                    generateDirection(userLocation!!, marker.position)
+                })
             }
         }
 
