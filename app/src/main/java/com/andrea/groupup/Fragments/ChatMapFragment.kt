@@ -141,6 +141,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     private var friendsBitmap = HashMap<Int, Bitmap?>()
 
+    private var travelTuto = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -515,6 +517,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 Log.d(TAG, "getTodaysTravel On Response")
 
                 val gson: Gson = Gson()
+                removeMarkers(localPlacesMarkers)
                 todaysTravel = gson.fromJson(jsonObject.toString(), Travel::class.java)
                 actualTravel = todaysTravel
                 displayActualTravel()
@@ -534,6 +537,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         if (actualTravel !== null) {
             setTravelMarkers(actualTravel!!.LocalPlaces)
             //generateTravelPolyline()
+        } else {
+            createDialolg("Today's travel",
+            "No places to visit are defined for today, please go to the explorer page to select the one you want to see",
+            "Ok",
+                DialogInterface.OnClickListener { _, _ ->
+                    setLocalPlacesMarkers()
+                },
+                null,
+                null
+            )
         }
     }
 
@@ -747,6 +760,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         Log.d(TAG, "displayLocalPlaceCreateActivity")
         val intent = Intent(context, CreatePlaceActivity::class.java)
         intent.putExtra("USER", ACTIVITY.user)
+        intent.putExtra("GROUP", ACTIVITY.group)
         intent.putExtra("TOKEN", ACTIVITY.token)
         intent.putExtra("location", marker.position)
         this.startActivity(intent)
