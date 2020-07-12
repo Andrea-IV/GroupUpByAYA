@@ -1,5 +1,6 @@
 package com.andrea.groupup.Models
 
+import android.text.Editable
 import java.io.Serializable
 import java.util.*
 

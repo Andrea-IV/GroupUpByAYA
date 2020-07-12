@@ -4,8 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.ImageButton
@@ -15,13 +18,23 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentTransaction
 import androidx.viewpager.widget.ViewPager
 import com.andrea.groupup.Adapters.PagerViewAdapter
-import com.andrea.groupup.Http.SingleUploadBroadcastReceiver
-import com.andrea.groupup.Models.Group
-import com.andrea.groupup.Models.User
+import com.andrea.groupup.Http.*
+import com.andrea.groupup.Http.Mapper.Mapper
+import com.andrea.groupup.Models.*
+import com.android.volley.VolleyError
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
 import de.hdodenhof.circleimageview.CircleImageView
 import net.gotev.uploadservice.MultipartUploadRequest
+import org.json.JSONArray
+import org.json.JSONObject
 import java.net.URI
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.properties.Delegates
+
+private const val TAG = "DETAIL"
 
 class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegate{
 
@@ -37,13 +50,62 @@ class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Deleg
     lateinit var group: Group
     lateinit var user: User
     lateinit var token: String
+//    var localplaces = ArrayList<LocalPlace>()
+//    var travels = ArrayList<Travel>()
+//    var meetingpoints: ArrayList<MeetingPoint> by Delegates.observable(ArrayList()) { property, oldValue, newValue ->
+//        Log.d(TAG, "new value = $newValue")
+//        Log.d(TAG, "old value = $oldValue")
+//    }
+
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var storagePermissionGranted = false
     private val uploadReceiver = SingleUploadBroadcastReceiver()
 
+    private lateinit var getGroupInfoHandler: Handler
+    private val getGroupInfoRunnable =  object: Runnable {
+        override fun run() {
+            getGroup()
+            getGroupInfoHandler.postDelayed(this, 5000)
+        }
+    }
+    private lateinit var groupHttp: GroupHttp
+//    lateinit var localplaceHttp: LocalPlaceHttp
+//    lateinit var travelHttp: TravelHttp
+//    lateinit var meetingPointHttp: MeetingPointHttp
+
+    private fun getGroup() {
+        groupHttp
+            .getById(group.id, object: VolleyCallback {
+                override fun onResponse(jsonObject: JSONObject) {
+                    val group = Mapper().mapper<JSONObject, Group>(jsonObject)
+                    var isIn = false
+                    group.members.forEach {
+                        if(user.id == it.id) {
+                            isIn = true
+                        }
+                    }
+
+                    if(!isIn) {
+                        finish()
+                    }
+                }
+
+                override fun onError(error: VolleyError) {
+                    Log.e(TAG, error.toString())
+                }
+
+            })
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
+
+        groupHttp = GroupHttp(this)
+//        localplaceHttp = LocalPlaceHttp(this)
+//        travelHttp = TravelHttp(this)
+//        meetingPointHttp = MeetingPointHttp(this)
+
 
         group = intent.getSerializableExtra("Group") as Group
         user = intent.getSerializableExtra("User") as User
@@ -98,11 +160,16 @@ class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Deleg
 
             override fun onPageSelected(position: Int) {
                 changingTabs(position)
+                val frag = mPagerAdapter.instantiateItem(mViewPager, position) as? FragmentInterface
+                frag?.fragmentBecameVisible()
             }
         })
 
         mViewPager.currentItem = 0
         groupButton.setImageResource(R.drawable.ic_group_blue)
+
+        getGroupInfoHandler = Handler(Looper.getMainLooper())
+        getGroupInfoHandler.post(getGroupInfoRunnable)
     }
 
     private fun changingTabs(position: Int) {
@@ -198,4 +265,26 @@ class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Deleg
         return cursor.getString(column_index)
     }
 
+//    private fun loadAllGroupInfo() {
+//        Log.d(TAG, "loadAllGroupInfo")
+//        getMeetingPoints()
+//    }
+//
+//    private fun getLocalPlaces(latlng: LatLng?) {
+//
+//    }
+//
+//    private fun getMeetingPoints() {
+//        meetingPointHttp.getNow(group.id, object: VolleyCallbackArray {
+//            override fun onResponse(array: JSONArray) {
+//                Log.d(TAG, "getMeetingPointsNow - onResponse")
+//                meetingpoints = Mapper().mapper(array)
+//            }
+//
+//            override fun onError(error: VolleyError) {
+//                Log.d(TAG, "getMeetingPointsNow - onError")
+//                Log.e(TAG, error.toString())
+//            }
+//        })
+//    }
 }
