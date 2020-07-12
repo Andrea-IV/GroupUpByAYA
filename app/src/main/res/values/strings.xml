@@ -36,7 +36,7 @@
     <string name="addUser_title">Add participant</string>
     <string name="addUser_none">All your friends are participants of this group</string>
     <string name="leave_participant">Leave</string>
-    <string name="searchUsername">Enter new friends username</string>
+    <string name="searchUsername">Friend\'s Username</string>
     <string name="addFriend_button">Add Friend</string>
     <string name="userNotExist">Username doesn\'t exist</string>
     <string name="invitationStillProcessing">User already invited, wait for their response !</string>
@@ -58,7 +58,7 @@
     <string name="add_event">Add Event</string>
     <string name="no_rating">No rating</string>
     <string name="add_rating">Add Rating</string>
-    <string name="dog_tag">Enter the Tag to add</string>
+    <string name="dog_tag">Tag to add</string>
     <string name="create_tag">Add Tag</string>
     <string name="login_show">Login</string>
     <string name="create_account">Create Account</string>

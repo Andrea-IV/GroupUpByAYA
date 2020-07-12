@@ -114,14 +114,6 @@ class ExploreFragment : BaseFragment() {
                     adapter.notifyDataSetChanged()
                     true
                 }
-                R.id.create -> {
-                    val intent = Intent(context, CreatePlaceActivity::class.java)
-                    intent.putExtra("USER", ACTIVITY.user)
-                    intent.putExtra("GROUP", ACTIVITY.group)
-                    intent.putExtra("TOKEN", token)
-                    this.startActivity(intent)
-                    true
-                }
                 else -> false
             }
         }

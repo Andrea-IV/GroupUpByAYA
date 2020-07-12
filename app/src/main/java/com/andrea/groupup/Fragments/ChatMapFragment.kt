@@ -99,12 +99,20 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
 
-//    private lateinit var sharePositionHandler: Handler
 
+    private lateinit var sharePositionHandler: Handler
+    private val checkPositionShareStateRunnable =  object: Runnable {
+        override fun run() {
+            checkUserPositionShareState()
+            sharePositionHandler.postDelayed(this, 5000)
+        }
+    }
+//    private lateinit var sharePositionHandler: Handler
     private lateinit var friendsLocationHandler: Handler
     private val getFriendsLocationRunnable = object: Runnable {
         override fun run() {
             getFriendsLocation()
+            friendsLocationHandler.postDelayed(this, 5000)
             checkUserPositionShareState()
             friendsLocationHandler.postDelayed(this, 1000)
         }
