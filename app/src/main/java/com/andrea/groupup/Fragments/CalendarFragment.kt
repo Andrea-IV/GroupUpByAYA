@@ -141,6 +141,7 @@ class CalendarFragment : BaseFragment() {
 
             override fun onError(error: VolleyError): Unit {
                 Log.e("EVENTS", "Event - onError")
+                Log.e("CALENDRA ERROR", "Event - onError")
                 Log.e("EVENTS", error.toString())
             }
         })

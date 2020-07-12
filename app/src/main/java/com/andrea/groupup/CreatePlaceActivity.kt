@@ -66,7 +66,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         token = intent.getStringExtra("TOKEN")
         location = intent.getParcelableExtra("location") as LatLng
 
-        place = LocalPlace(0, "", "", "", "",  "", Date(), user.id, group.id, ArrayList<Photo>(), 0.0, ArrayList<Tag>(), 0.0, 0, 0, null)
+        place = LocalPlace(0, "", location.latitude.toString(), location.longitude.toString(), "",  "", Date(), user.id, group.id, ArrayList<Photo>(), 0.0, ArrayList<Tag>(), 0.0, 0, 0, null)
         place.id = 0
 
         title = findViewById(R.id.title)
@@ -265,6 +265,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
                 .setMaxRetries(2)
                 .startUpload()
         }
+        finish()
     }
 
 

@@ -635,6 +635,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
             override fun onError(error: VolleyError): Unit {
                 Log.e("EVENTS", "Event - onError")
+                Log.e("EVENTS", error.toString())
             }
         })
     }
@@ -680,6 +681,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
             override fun onError(error: VolleyError): Unit {
                 Log.e("EVENTS", "Event - onError")
+                Log.e("EVENTS", error.toString())
             }
         })
     }
@@ -692,6 +694,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
             override fun onError(error: VolleyError): Unit {
                 Log.e("EVENTS", "Event - onError")
+                Log.e("EVENTS", error.toString())
             }
         })
     }
