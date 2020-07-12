@@ -1,30 +1,43 @@
 package com.andrea.groupup
 
 import android.animation.ValueAnimator
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.gson.Gson
 import org.json.JSONObject
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+
 
 class MainActivity : AppCompatActivity() {
+    lateinit var callbackManager: CallbackManager
 
     private var firebaseToken: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        callbackManager = CallbackManager.Factory.create()
 
         FirebaseInstanceId.getInstance().instanceId
             .addOnCompleteListener(OnCompleteListener { task ->
@@ -90,6 +103,26 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        /*val loginButton = findViewById<LoginButton>(R.id.login_button)
+        loginButton.setReadPermissions(listOf("public_profile", "email"))
+        // If you are using in a fragment, call loginButton.setFragment(this)
+
+        // Callback registration
+        loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
+            override fun onSuccess(loginResult: LoginResult?) {
+                Log.d("TAG", "Success Login")
+                // Get User's Info
+            }
+
+            override fun onCancel() {
+                Toast.makeText(this@MainActivity, "Login Cancelled", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onError(exception: FacebookException) {
+                Toast.makeText(this@MainActivity, exception.message, Toast.LENGTH_LONG).show()
+            }
+        })*/
+
         findViewById<Button>(R.id.loginShow).setOnClickListener {
             showLogin()
         }
@@ -111,6 +144,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.returnButton).setOnClickListener {
             returnMain()
         }
+
+        //printHashKey(this.baseContext)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        callbackManager.onActivityResult(requestCode, resultCode, data)
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun createAction(){
@@ -277,4 +317,21 @@ class MainActivity : AppCompatActivity() {
 
         fadeIn.start()
     }
+
+    /*private fun printHashKey(pContext: Context) {
+        try {
+            val info: PackageInfo = pContext.getPackageManager()
+                .getPackageInfo(pContext.getPackageName(), PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures) {
+                val md: MessageDigest = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val hashKey = String(Base64.encode(md.digest(), 0))
+                Log.i("HASH", "printHashKey() Hash Key: $hashKey")
+            }
+        } catch (e: NoSuchAlgorithmException) {
+            Log.e("HASH", "printHashKey()", e)
+        } catch (e: Exception) {
+            Log.e("HASH", "printHashKey()", e)
+        }
+    }*/
 }

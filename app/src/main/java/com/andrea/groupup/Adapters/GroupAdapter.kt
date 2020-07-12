@@ -1,14 +1,18 @@
 package com.andrea.groupup.Adapters
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import com.andrea.groupup.Constants
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.R
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -51,9 +55,10 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
         viewHolder.idView!!.text = group.id.toString()
         val text = group.members.size.toString() + context.resources.getString(R.string.numberOfPeople)
         viewHolder.numberOfPeople!!.text = text
-        /* if(group.image != 0){
-             viewHolder.imageView!!.setImageResource(group.image)
-         }*/
+
+        if(group.picture != null){
+            Picasso.get().load(Constants.BASE_URL + "/" + group.picture).into(view.findViewById<CircleImageView>(R.id.profile_image))
+        }
 
         view.tag = viewHolder
 

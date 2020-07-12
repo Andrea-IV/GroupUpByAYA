@@ -24,6 +24,7 @@ import com.andrea.groupup.DetailsActivity
 import com.andrea.groupup.Http.*
 import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Models.Group
+import com.andrea.groupup.Models.LocalPlace
 import com.andrea.groupup.Models.User
 
 import com.andrea.groupup.R
@@ -52,7 +53,6 @@ class GroupFragment : BaseFragment() {
     lateinit var mView: View
 
     lateinit var addAdapter: AddParticipantAdapter
-    lateinit var userRes: List<User>
     var addListItems = arrayListOf<User>()
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var storagePermissionGranted = false
@@ -92,8 +92,9 @@ class GroupFragment : BaseFragment() {
         val addUser: ImageView = mView.findViewById(R.id.addUser)
 
         addUser.setOnClickListener{
-            UserHttp(ACTIVITY).getAll(object: VolleyCallbackArray {
+            FriendHttp(ACTIVITY).getFriend(user.id.toString(), object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
+                    Log.d("FRiEND", array.toString())
                     val dialog = BottomSheetDialog(ACTIVITY, R.style.DialogStyle)
 
                     val view = layoutInflater.inflate(R.layout.dialog_add_user, null)
@@ -101,9 +102,9 @@ class GroupFragment : BaseFragment() {
                     textView.visibility = View.GONE
                     addListItems.clear()
 
-                    userRes = Mapper().mapper(array)
-                    for (user: User in userRes){
-                        addListItems.add(user)
+                    val gson = Gson()
+                    for(i: Int in 0 until array.length()){
+                        addListItems.add(gson.fromJson(((array[i] as JSONObject)["User"] as JSONObject).toString(), User::class.java))
                     }
                     addListItems.removeAll(listItems)
 

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.andrea.groupup.Constants
 import com.andrea.groupup.Http.FriendHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Http.VolleyCallbackArray
@@ -13,6 +14,8 @@ import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
 import com.google.gson.Gson
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -50,6 +53,10 @@ class InvitesAdapter(items: ArrayList<User>, val user: User, val token: String, 
         }
 
         val friend = getItem(i)
+        if(!friend!!.pp_link.contains("base")){
+            Picasso.get().load(Constants.BASE_URL + "/" + friend.pp_link).into(view.findViewById<CircleImageView>(R.id.profile_image))
+        }
+
         //viewHolder.image!!.src = event!!.date
         viewHolder.name!!.text = friend.username
         viewHolder.accept!!.setOnClickListener {

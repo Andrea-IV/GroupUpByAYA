@@ -10,11 +10,14 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.andrea.groupup.Constants
 import com.andrea.groupup.Http.FriendHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
@@ -52,6 +55,9 @@ class FriendAdapter(items: ArrayList<User>, val user: User, ctx: Context) :
         val participant = getItem(i)
         //viewHolder.image!!.src = event!!.date
         viewHolder.name!!.text = participant.username
+        if(!participant!!.pp_link.contains("base")){
+            Picasso.get().load(Constants.BASE_URL + "/" + participant.pp_link).into(view.findViewById<CircleImageView>(R.id.profile_image))
+        }
 
         view.findViewById<ImageView>(R.id.imageView).setOnClickListener {
             val popupMenu = PopupMenu(context, it)

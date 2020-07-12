@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.andrea.groupup.Constants
 import com.andrea.groupup.GroupActivity
 import com.andrea.groupup.Http.GroupHttp
 import com.andrea.groupup.Http.Http
@@ -15,6 +16,8 @@ import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.andrea.groupup.R
 import com.android.volley.VolleyError
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
@@ -56,7 +59,9 @@ class ParticipantAdapter(items: ArrayList<User>, user: User, IsAdmin: Boolean, I
         val participant = getItem(i)
         //viewHolder.image!!.src = event!!.date
         viewHolder.name!!.text = participant.username
-
+        if(!participant!!.pp_link.contains("base")){
+            Picasso.get().load(Constants.BASE_URL + "/" + participant.pp_link).into(view.findViewById<CircleImageView>(R.id.profile_image))
+        }
         if(participant.UserGroup.is_admin){
             val adminImage: ImageView = view.findViewById(R.id.isAdmin)
             adminImage.visibility = View.VISIBLE

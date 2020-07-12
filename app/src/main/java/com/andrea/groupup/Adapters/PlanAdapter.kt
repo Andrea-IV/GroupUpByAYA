@@ -68,7 +68,13 @@ class PlanAdapter(var events: ArrayList<Event>, var selectedAdapter: SelectedAda
             this.planAdapter = planAdapter
 
             (view.findViewById<View>(R.id.title) as TextView).text = plan?.name
-            (view.findViewById<View>(R.id.rating) as TextView).text = plan?.Ratings.toString()
+
+            if(plan?.Ratings != null){
+                (view.findViewById<View>(R.id.rating) as TextView).text = plan?.Ratings.toString()
+            }else{
+                (view.findViewById<View>(R.id.rating) as TextView).text = "No ratings"
+            }
+
             Picasso.get().load(Constants.BASE_URL + "/" + place.Photos[0].link).into(view.findViewById<ImageView>(R.id.image))
 
             if(event.UserId == user.id){

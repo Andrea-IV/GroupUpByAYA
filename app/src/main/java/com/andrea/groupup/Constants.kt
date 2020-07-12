@@ -2,6 +2,6 @@ package com.andrea.groupup
 
 class Constants {
     companion object {
-        const val BASE_URL = "http://192.168.0.45:8080"
+        const val BASE_URL = "http://192.168.56.1:8080"
     }
     }

@@ -8,14 +8,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
+import com.andrea.groupup.Constants
 import com.andrea.groupup.EventActivity
 import com.andrea.groupup.Models.EventDisplay
 import com.andrea.groupup.R
+import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -74,7 +77,12 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
             params.setMargins(0,0,10,0)
             img.layoutParams = params
             img.borderWidth = 2
-            img.setImageResource(R.drawable.example)
+
+            if(user.pp_link.contains("base")){
+                img.setImageResource(R.drawable.example)
+            }else{
+                Picasso.get().load(Constants.BASE_URL + "/" + user.pp_link).into(img)
+            }
 
             viewHolder.linearLayout?.addView(img)
         }
