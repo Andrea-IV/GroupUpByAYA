@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -77,6 +79,7 @@ class CalendarFragment : BaseFragment() {
     }
 
     private fun initEvents(){
+        Log.d("USe", "USE")
         EventHttp(this.requireContext()).getEvents(group.id.toString(), token, object: VolleyCallbackArray {
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(array: JSONArray) {
