@@ -1,6 +1,8 @@
 package com.andrea.groupup.Adapters
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +24,7 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
 
     var arrayList = items
     var tempList = ArrayList(arrayList)
+    var done = false
 
     //view holder is used to prevent findViewById calls
     private class GroupViewHolder {
@@ -58,6 +61,8 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
 
         if(group.picture != null){
             Picasso.get().load(Constants.BASE_URL + "/" + group.picture).into(view.findViewById<CircleImageView>(R.id.profile_image))
+        }else{
+            view.findViewById<CircleImageView>(R.id.profile_image).setImageResource(R.drawable.example)
         }
 
         view.tag = viewHolder
@@ -66,10 +71,15 @@ class GroupAdapter(items: ArrayList<Group>, ctx: Context) :
     }
 
     fun filter(text: String?) {
+        if(!done){
+            tempList.addAll(arrayList)
+            done = true
+        }
         val text = text!!.toLowerCase(Locale.getDefault())
         arrayList.clear()
 
-        if (text.length == 0) {
+        if (text.isBlank() || text.isEmpty()) {
+            Log.d("FILTER", tempList.toString())
             arrayList.addAll(tempList)
         } else {
             for (i in 0..tempList.size - 1) {

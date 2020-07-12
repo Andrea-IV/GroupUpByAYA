@@ -98,7 +98,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private val checkPositionShareStateRunnable =  object: Runnable {
         override fun run() {
             checkUserPositionShareState()
-            sharePositionHandler.postDelayed(this, 1000)
+            sharePositionHandler.postDelayed(this, 5000)
         }
     }
 
@@ -106,7 +106,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private val getFriendsLocationRunnable = object: Runnable {
         override fun run() {
             getFriendsLocation()
-            friendsLocationHandler.postDelayed(this, 1000)
+            friendsLocationHandler.postDelayed(this, 5000)
         }
 
     }

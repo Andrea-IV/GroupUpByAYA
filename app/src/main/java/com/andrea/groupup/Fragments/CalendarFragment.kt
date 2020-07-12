@@ -40,6 +40,7 @@ class CalendarFragment : BaseFragment() {
     private lateinit var listItems: ArrayList<EventDisplay>
     private lateinit var mView: View
     private lateinit var adapter: EventAdapter
+    private lateinit var calendarView: CalendarView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mView = inflater.inflate(R.layout.fragment_calendar, container, false)
@@ -48,6 +49,8 @@ class CalendarFragment : BaseFragment() {
         group = ACTIVITY.group
         user = ACTIVITY.user
         token = ACTIVITY.token
+
+        calendarView = mView.findViewById(R.id.calendar)
 
         adapter = EventAdapter(listItems, requireContext())
         val listView: ListView = mView.findViewById(R.id.listOfEvents)
@@ -123,10 +126,9 @@ class CalendarFragment : BaseFragment() {
                     val month = date.substring(0, date.indexOf("-"))
                     val day = date.substring(date.indexOf("-") + 1, date.lastIndex + 1)
                     calendar.set(year.toInt(), month.toInt() - 1, day.toInt())
+                    events.add(EventDay(calendar, R.drawable.ic_place_primary, R.color.colorPrimary));
                 }
-                events.add(EventDay(calendar, R.drawable.ic_place_primary, R.color.colorPrimary));
 
-                val calendarView = mView.findViewById<CalendarView>(R.id.calendar)
                 calendarView.setEvents(events);
                 calendarView.setOnDayClickListener(object : OnDayClickListener {
                     @SuppressLint("SimpleDateFormat")

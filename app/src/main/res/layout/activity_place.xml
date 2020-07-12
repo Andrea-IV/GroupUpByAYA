@@ -44,7 +44,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/button_unfocused_red"
-                android:src="@drawable/ic_close_white"
+                android:src="@drawable/ic_delete_white"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -149,16 +149,6 @@
             app:layout_constraintStart_toEndOf="@+id/descriptionTitle"
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
-    <ImageView
-            android:id="@+id/selected"
-            android:layout_width="5dp"
-            android:layout_height="5dp"
-            android:src="@drawable/dot_selected"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.18"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/descriptionTitle" />
-
     <ScrollView
             android:id="@+id/SCROLLER_ID"
             android:layout_width="fill_parent"
@@ -171,7 +161,7 @@
             android:layout_marginBottom="20dp"
             app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/selected">
+            app:layout_constraintTop_toBottomOf="@+id/tagsTitle">
 
         <TextView
                 android:id="@+id/description"
@@ -182,6 +172,7 @@
     </ScrollView>
 
     <ScrollView
+            android:id="@+id/second_scroll"
             android:layout_width="fill_parent"
             android:layout_height="250dp"
             android:layout_marginTop="40dp"
@@ -192,7 +183,7 @@
             android:layout_marginBottom="20dp"
             app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/selected">
+            app:layout_constraintTop_toBottomOf="@+id/tagsTitle">
 
         <EditText
                 android:id="@+id/editDescription"
@@ -214,7 +205,7 @@
             android:layout_marginBottom="20dp"
             app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/selected"
+            app:layout_constraintTop_toBottomOf="@+id/tagsTitle"
             android:visibility="gone"
             android:orientation="horizontal"
             android:layout_width="match_parent"/>

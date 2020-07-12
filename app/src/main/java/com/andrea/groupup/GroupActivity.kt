@@ -8,6 +8,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -53,6 +55,14 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private var uri: Uri? = null
     private val uploadReceiver = SingleUploadBroadcastReceiver()
 
+    private val groupInfoRunnable =  object: Runnable {
+        override fun run() {
+            getGroupInfo()
+            infoGroupHandler.postDelayed(this, 5000)
+        }
+    }
+    private lateinit var infoGroupHandler: Handler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_group)
@@ -71,6 +81,9 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         searchInit()
         addGroupInit()
         menuInit()
+
+        infoGroupHandler = Handler(Looper.getMainLooper())
+        infoGroupHandler.post(groupInfoRunnable)
     }
 
     private fun groupViewInit(){
@@ -87,6 +100,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                 gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
                     override fun onItemClick(parent: AdapterView<*>, view: View,
                                              position: Int, id: Long) {
+
                         val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
                         intent.putExtra("Group", listItems[position])
                         intent.putExtra("User", user)
@@ -114,6 +128,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
+                Log.d("FILTER", newText)
                 adapter.filter(newText)
                 return false
             }
@@ -487,5 +502,9 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                 storagePermissionGranted = true;
             }
         }
+    }
+
+    private fun getGroupInfo(){
+        Log.d("Hello", "HERRE")
     }
 }
