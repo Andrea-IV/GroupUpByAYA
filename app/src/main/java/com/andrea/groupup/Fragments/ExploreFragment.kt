@@ -66,7 +66,7 @@ class ExploreFragment : BaseFragment() {
         token = ACTIVITY.token
 
         getDeviceLocation()
-        searchInit()
+        //searchInit()
 
         mView.findViewById<ImageView>(R.id.filter).setOnClickListener {
             initMenu(it)
@@ -185,7 +185,7 @@ class ExploreFragment : BaseFragment() {
         }
     }
 
-    private fun searchInit(){
+    /*private fun searchInit(){
         searchView = mView.findViewById(R.id.searchBar)
         searchView.queryHint = getString(R.string.searchHint)
         searchView.imeOptions = EditorInfo.IME_ACTION_DONE
@@ -200,5 +200,5 @@ class ExploreFragment : BaseFragment() {
                 return false
             }
         })
-    }
+    }*/
 }

@@ -1,15 +1,19 @@
 package com.andrea.groupup.Models;
 
+import android.graphics.Bitmap;
+
 public class Message {
     private String text;
     private MemberData memberData;
+    private Bitmap bitmap;
     private boolean belongsToCurrentUser;
 
     public Message() {
     }
-    public Message(String text, MemberData data, boolean belongsToCurrentUser) {
+    public Message(String text, MemberData data, Bitmap bitmap, boolean belongsToCurrentUser) {
         this.text = text;
         this.memberData = data;
+        this.bitmap = bitmap;
         this.belongsToCurrentUser = belongsToCurrentUser;
     }
 
@@ -19,6 +23,9 @@ public class Message {
 
     public MemberData getMemberData() {
         return memberData;
+    }
+    public Bitmap getBitmap() {
+        return bitmap;
     }
 
     public boolean isBelongsToCurrentUser() {

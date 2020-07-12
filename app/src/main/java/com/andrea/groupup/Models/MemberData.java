@@ -1,5 +1,7 @@
 package com.andrea.groupup.Models;
 
+import android.graphics.Bitmap;
+
 public class MemberData {
     private String name;
     private String color;
