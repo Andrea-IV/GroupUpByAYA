@@ -69,7 +69,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         findViewById<Button>(R.id.button2).setOnClickListener {
 
             AlertDialog
-                .Builder(context)
+                .Builder(this)
                 .setTitle("Direction")
                 .setMessage("Would you like to show the direction on Google map or on our application ?")
                 .setCancelable(false)

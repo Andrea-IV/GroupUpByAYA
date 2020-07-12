@@ -3,6 +3,7 @@ package com.andrea.groupup.Fragments
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -11,10 +12,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.ImageView
-import android.widget.PopupMenu
-import android.widget.SearchView
-import android.widget.Toast
+import android.widget.*
+import androidx.appcompat.view.menu.ActionMenuItemView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -77,6 +76,21 @@ class ExploreFragment : BaseFragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+        when(resultCode) {
+            1 -> {
+                val placeLocation = data!!.getParcelableExtra<LatLng>("location")
+                val preferences = ACTIVITY.getSharedPreferences("groupup", Context.MODE_PRIVATE)
+                val edit = preferences.edit()
+
+                edit.putBoolean("explorer", true)
+                edit.putString("explorer_location_lat", placeLocation.latitude.toString())
+                edit.putString("explorer_location_lng", placeLocation.longitude.toString())
+                edit.apply()
+                ACTIVITY.chatMapButton.performClick()
+            }
+        }
+
         allListItems.clear()
         listItems.clear()
         getDeviceLocation()

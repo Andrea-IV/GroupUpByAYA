@@ -60,6 +60,7 @@ import org.json.JSONObject
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.math.ln
 import kotlin.properties.Delegates
 
 /**
@@ -158,6 +159,21 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         getLocalPlaces(userLocation)
         getMeetingPointsNow()
         getTodaysTravel()
+
+        if(preferences.getBoolean("explorer", false)) {
+            edit.remove("explorer")
+            removeMarkers(travelMarkers)
+            setLocalPlacesMarkers()
+
+            val lat = preferences.getString("explorer_location_lat", null)
+            val lng = preferences.getString("explorer_location_lng", null)
+            edit.remove("explorer_location_lat")
+            edit.remove("explorer_location_lng")
+            edit.apply()
+            if(lat !== null && lng !== null) {
+                generateDirection(userLocation!!, LatLng(lat.toDouble(), lng.toDouble()))
+            }
+        }
     }
 
     override fun onCreateView(
@@ -534,7 +550,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 //        sharePositionHandler.post(checkPositionShareStateRunnable)
 //        friendsLocationHandler.post(getFriendsLocationRunnable)
 
-        if(checkGps()) getDeviceLocation()
+        if(checkGps()) getDeviceLocation { }
         getMeetingPointsNow()
     }
 
@@ -625,7 +641,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private fun checkLocationEnabled() {
         if(checkGps()) {
             shareLocationButton.visibility = View.VISIBLE
-            getDeviceLocation()
+            getDeviceLocation { }
         } else {
             createDialolg(
                 "Gps network is not enabled",
@@ -651,7 +667,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             .show()
     }
 
-    private fun getDeviceLocation() {
+    private fun getDeviceLocation(cb: () -> Unit) {
         Log.d(TAG, "getDeviceLocation")
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
         mFusedLocationProviderClient.locationAvailability.addOnSuccessListener {
@@ -663,6 +679,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                         userLocation = LatLng(it.latitude, it.longitude)
                         getLocalPlaces(userLocation)
                         moveCamera(userLocation!!, 9.5f)
+                        cb()
                     }
                 } else {
                     checkLocationEnabled()
@@ -925,8 +942,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 if(resultCode == 1) {
                     val placeLocation = data!!.getParcelableExtra<LatLng>("location")
                     if(checkGps()) {
-                        getDeviceLocation()
-                        generateDirection(userLocation!!, placeLocation)
+                        getDeviceLocation {
+                            generateDirection(userLocation!!, placeLocation)
+                        }
+
                     }
                 }
             }
@@ -934,8 +953,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 if(resultCode == 1) {
                     val placeLocation = data!!.getParcelableExtra<LatLng>("location")
                     if(checkGps()) {
-                        getDeviceLocation()
-                        generateDirection(userLocation!!, placeLocation)
+                        getDeviceLocation {
+                            generateDirection(userLocation!!, placeLocation)
+                        }
                     }
                 }
             }
@@ -1035,9 +1055,21 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     openGoogleMap(marker.position.latitude, marker.position.longitude)
                 }, "Here", DialogInterface.OnClickListener { dialog, which ->
                     dialog.dismiss()
-                    getDeviceLocation()
-                    generateDirection(userLocation!!, marker.position)
+                    getDeviceLocation {
+                        generateDirection(userLocation!!, marker.position)
+                    }
+
                 })
+            }
+        } else {
+            val direction = view.findViewById<TextView>(R.id.show_meeting_point_direction)
+            direction.visibility = View.VISIBLE
+            direction.setOnClickListener {
+                dialog.hide()
+                createDialolg("Direction", "Would you like to show the direction on Google map or on our application ?", "Google Map", DialogInterface.OnClickListener { dialog, which ->
+                    dialog.dismiss()
+                    openGoogleMap(marker.position.latitude, marker.position.longitude)
+                }, null, null)
             }
         }
 
