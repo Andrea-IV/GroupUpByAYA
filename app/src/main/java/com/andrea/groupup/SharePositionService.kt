@@ -28,7 +28,7 @@ class SharePositionService : Service() {
     private val sharePositionRunnable =  object: Runnable {
         override fun run() {
             sharePositionHandlerFunction()
-            sharePositionHandler.postDelayed(this, 1000)
+            sharePositionHandler.postDelayed(this, 5000)
         }
     }
     private var hasStarted = false

@@ -11,8 +11,10 @@ import android.os.Bundle
 import android.os.LocaleList
 import android.provider.MediaStore
 import android.util.Log
+import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -56,6 +58,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
     private var storagePermissionGranted = false
     private val uploadReceiver = SingleUploadBroadcastReceiver()
     private lateinit var location: LatLng
+    private var allowed: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,10 +75,8 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         title = findViewById(R.id.title)
         description = findViewById(R.id.description)
         rating = findViewById(R.id.rating)
-        rating = findViewById(R.id.rating)
 
         title.hint = getString(R.string.title_hint)
-        description.hint = getString(R.string.description_hint)
         rating.hint = getString(R.string.rating_hint)
 
         var layoutManager = LinearLayoutManager(this)
@@ -109,13 +110,27 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
             initMenu(it)
         }
 
+        findViewById<TextView>(R.id.rating).setOnClickListener {
+            displayAddRating()
+        }
+
         findViewById<ImageView>(R.id.imageView3).setOnClickListener {
             displayAddRating()
+        }
+
+        findViewById<ImageView>(R.id.deletePhoto).setOnClickListener {
+            deletePhoto()
         }
 
         findViewById<ImageView>(R.id.back).setOnClickListener {
             finish()
         }
+    }
+
+    private fun deletePhoto(){
+        dataPhoto.removeAt(actualPhotoIndex)
+        actualPhotoIndex += 1
+        changePhoto(true)
     }
 
     private fun displayAddRating(){
@@ -191,6 +206,9 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
                 }
             }
             findViewById<ImageView>(R.id.imageView2).setImageURI(dataPhoto[actualPhotoIndex])
+        }else{
+            findViewById<ImageView>(R.id.imageView2).setImageDrawable(null)
+            findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }
     }
 
@@ -199,9 +217,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         popupMenu.setOnMenuItemClickListener { item ->
             when(item.itemId){
                 R.id.photo -> {
-                    val intent = Intent(Intent.ACTION_PICK)
-                    intent.type = "image/*"
-                    startActivityForResult(intent, REQUEST_CODE)
+                    checkAllowed(it)
                     true
                 }
                 R.id.tag -> {
@@ -244,11 +260,38 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         }
     }
 
+    private fun checkAllowed(it: View){
+        val window = PopupWindow(it, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,true)
+        val view = layoutInflater.inflate(R.layout.dialog_yes_no_maybe_i_don_t_know, null)
+        view.findViewById<TextView>(R.id.textDialog).text = getString(R.string.ask_allowed)
+        window.contentView = view
+
+        view.findViewById<Button>(R.id.yes).setOnClickListener {
+            window.dismiss()
+            allowed = true
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<Button>(R.id.no).setOnClickListener {
+            window.dismiss()
+            allowed = false
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "image/*"
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+        view.findViewById<ConstraintLayout>(R.id.layout).setOnClickListener {
+            window.dismiss()
+        }
+        window.showAtLocation(it, Gravity.CENTER, 0, 0)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE){
             data?.data?.let { dataPhoto.add(it) }
             findViewById<ImageView>(R.id.imageView2).setImageURI(data?.data) // handle chosen image
+            findViewById<ImageView>(R.id.deletePhoto).visibility= View.VISIBLE
         }
     }
 
@@ -261,6 +304,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
             MultipartUploadRequest(this, uploadId, Constants.BASE_URL + "/photos")
                 .addFileToUpload(getUriPath(photo), "images") //Adding file
                 .addParameter("localPlaceId", place.id.toString())
+                .addParameter("allow_share", allowed.toString())
                 .addHeader("Authorization", "Bearer $token")
                 .setMaxRetries(2)
                 .startUpload()
@@ -362,16 +406,20 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
     }
 
     private fun addTags(tags: ArrayList<Tag>){
-        LocalPlaceHttp(this).addTags(tags, place.id.toString(),  object: VolleyCallback {
-            override fun onResponse(jsonObject: JSONObject) {
-                addRating()
-            }
+        if(tags.isEmpty()){
+            addRating()
+        }else{
+            LocalPlaceHttp(this).addTags(tags, place.id.toString(),  object: VolleyCallback {
+                override fun onResponse(jsonObject: JSONObject) {
+                    addRating()
+                }
 
-            override fun onError(error: VolleyError) {
-                Log.e("USER", "login - onError")
-                Log.e("USER", error.javaClass.toString())
-            }
-        })
+                override fun onError(error: VolleyError) {
+                    Log.e("USER", "login - onError")
+                    Log.e("USER", error.javaClass.toString())
+                }
+            })
+        }
     }
 
     private fun addRating(){

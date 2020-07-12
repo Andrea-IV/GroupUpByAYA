@@ -40,6 +40,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
@@ -52,12 +53,13 @@ import com.scaledrone.lib.*
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_friends.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
+import kotlinx.android.synthetic.main.list_of_places.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.sql.DriverManager
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.properties.Delegates
 
 /**
  * A simple [Fragment] subclass.
@@ -65,12 +67,16 @@ import kotlin.collections.HashMap
 
 private const val TAG = "MAP"
 
-class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCameraIdleListener,*/ GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener {
+class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCameraIdleListener,*/ GoogleMap.OnMarkerClickListener, RoomListener, MultiplePermissionsListener, FragmentInterface {
 
     private lateinit var groupHttp: GroupHttp
+    private lateinit var meetingpointHttp: MeetingPointHttp
+    private lateinit var travelHttp: TravelHttp
+    private lateinit var localplaceHttp: LocalPlaceHttp
+
     private val PLACE_ACTIVITY_RESULT = 4
     private val MEETINGPOINT_ACTIVITY_RESULT = 3
-    private lateinit var userLocation: LatLng
+    private var userLocation: LatLng? = null
 
     private var isLocalPlaceModeOn: Boolean = false
     private var permissions = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -94,18 +100,21 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private lateinit var meetingPointsList: List<MeetingPoint>
     private var meetingPointMarkerList = ArrayList<Marker>()
 
+
     private lateinit var sharePositionHandler: Handler
     private val checkPositionShareStateRunnable =  object: Runnable {
         override fun run() {
             checkUserPositionShareState()
-            sharePositionHandler.postDelayed(this, 1000)
+            sharePositionHandler.postDelayed(this, 5000)
         }
     }
-
+//    private lateinit var sharePositionHandler: Handler
     private lateinit var friendsLocationHandler: Handler
     private val getFriendsLocationRunnable = object: Runnable {
         override fun run() {
             getFriendsLocation()
+            friendsLocationHandler.postDelayed(this, 5000)
+            checkUserPositionShareState()
             friendsLocationHandler.postDelayed(this, 1000)
         }
 
@@ -141,7 +150,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     private var friendsBitmap = HashMap<Int, Bitmap?>()
 
-    private var travelTuto = false
+//    private lateinit var changeSupport: PropertyChangeSupport
+
+
+    override fun fragmentBecameVisible() {
+        Log.d(TAG, "fragmentBecameVisible")
+        getLocalPlaces(userLocation)
+        getMeetingPointsNow()
+        getTodaysTravel()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -150,12 +167,23 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         // Inflate the layout for this fragment
         val view: View = inflater.inflate(R.layout.fragment_chat_map, container, false)
 
-        getLocalPlaces(null)
-
+//        changeSupport = PropertyChangeSupport(ACTIVITY.meetingpoints)
+//        changeSupport.addPropertyChangeListener {
+//            Log.d(TAG, "new value = ${it.newValue}")
+//            Log.d(TAG, "old value = ${it.oldValue}")
+//        }
         groupHttp = GroupHttp(ACTIVITY)
+        meetingpointHttp = MeetingPointHttp(ACTIVITY)
+        localplaceHttp = LocalPlaceHttp(ACTIVITY)
+        travelHttp = TravelHttp(ACTIVITY)
 
+//        getLocalPlaces(null)
+
+        println("group = ${ACTIVITY.group.members.size}")
+
+        val layout = view.map_layout
         ACTIVITY.group.members.forEach {
-            val mTarget = object : com.squareup.picasso.Target {
+            val target = object : com.squareup.picasso.Target {
                 override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
                     // loaded bitmap is here (bitmap)
                     Log.d(TAG, "onBitmapLoaded -> ${it.username}")
@@ -171,9 +199,12 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     Log.d(TAG, "onBitmapFailed -> ${it.username}")
                 }
             }
-
+            val imageView = ImageView(ACTIVITY)
+            imageView.tag = target
+            imageView.visibility = View.GONE
+            layout.addView(imageView)
             Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
-            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(mTarget)
+            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(target)
         }
 
         preferences = ACTIVITY.getSharedPreferences("groupup", Context.MODE_PRIVATE)
@@ -305,8 +336,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             shareLocationButton.visibility = View.VISIBLE
         }
 
-        sharePositionHandler = Handler(Looper.getMainLooper())
-        sharePositionHandler.post(checkPositionShareStateRunnable)
+//        sharePositionHandler = Handler(Looper.getMainLooper())
+//        sharePositionHandler.post(checkPositionShareStateRunnable)
         friendsLocationHandler = Handler(Looper.getMainLooper())
         friendsLocationHandler.post(getFriendsLocationRunnable)
         return view
@@ -318,6 +349,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             .withListener(this)
             .check()
     }
+
     private fun showLocalPlaceModeDialog() {
         if(!preferences.getBoolean("hasSeensLocalPlaceMapTutorialOnce", false)) {
             createDialolg("Localplace mode",
@@ -434,10 +466,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun removeFriendMarker(username: String) {
-        friendsMarker.forEach {
-            if(it.title == username)
+        var i = -1
+        friendsMarker.forEachIndexed { index, it ->
+            if(it.title == username) {
                 it.remove()
+                i = index
+            }
         }
+
+        if(i != -1)
+            friendsMarker.removeAt(i)
     }
 
     private fun checkUserPositionShareState() {
@@ -483,7 +521,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     override fun onPause() {
         super.onPause()
 //        sharePositionHandler.removeCallbacks(checkPositionShareStateRunnable)
-        friendsLocationHandler.removeCallbacks(getFriendsLocationRunnable)
+//        friendsLocationHandler.removeCallbacks(getFriendsLocationRunnable)
     }
 
     override fun onStop() {
@@ -521,7 +559,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun getTodaysTravel() {
-        TravelHttp(ACTIVITY).getTodaysTravel(ACTIVITY.group.id, ACTIVITY.token, object: VolleyCallback {
+        travelHttp.getTodaysTravel(ACTIVITY.group.id, ACTIVITY.token, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d(TAG, "getTodaysTravel On Response")
 
@@ -625,7 +663,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     mFusedLocationProviderClient.lastLocation.addOnSuccessListener {
                         userLocation = LatLng(it.latitude, it.longitude)
                         getLocalPlaces(userLocation)
-                        moveCamera(userLocation, 9.5f)
+                        moveCamera(userLocation!!, 9.5f)
                     }
                 } else {
                     checkLocationEnabled()
@@ -657,14 +695,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     private fun getLocalPlaces(target: LatLng?) {
         Log.d(TAG, "getLocalPlaces = " + target?.latitude + " " + target?.longitude)
-        LocalPlaceHttp(this.requireContext()).getByGroup(ACTIVITY.group.id, target?.latitude, target?.longitude, ACTIVITY.token, object: VolleyCallbackArray {
+        localplaceHttp.getByGroup(ACTIVITY.group.id, target?.latitude, target?.longitude, ACTIVITY.token, object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
                 localPlaces = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
                 Log.d(TAG, "IS TRAVEL = " + isTravelDisplayed)
                 if(!isTravelDisplayed) {
-
                     setLocalPlacesMarkers()
                 }
             }
@@ -679,7 +716,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun setLocalPlacesMarkers() {
-
         localPlaces.forEach {
             localPlacesMarkers.add(addMarker(
                 it.name,
@@ -810,12 +846,67 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
     private fun displayMeetingPointCreateActivity(marker: Marker) {
         Log.d(TAG, "displayMeetingPointCreateActivity")
-        val intent = Intent(context, CreateMeetingPointActivity::class.java)
-//        intent.putExtra("meetingPoing", user)
-        intent.putExtra("latlng", marker.position)
-        intent.putExtra("user", ACTIVITY.user)
-        intent.putExtra("token", ACTIVITY.token)
-        startActivityForResult(intent, 1)
+//        val intent = Intent(context, CreateMeetingPointActivity::class.java)
+////        intent.putExtra("meetingPoing", user)
+//        intent.putExtra("latlng", marker.position)
+//        intent.putExtra("user", ACTIVITY.user)
+//        intent.putExtra("token", ACTIVITY.token)
+//        startActivityForResult(intent, 1)
+
+        val dialog = BottomSheetDialog(ACTIVITY)
+        val view = layoutInflater.inflate(R.layout.dialog_create_meetingpoint, null)
+        dialog.setContentView(view)
+
+        view.findViewById<Button>(R.id.create_meeting_point_save).setOnClickListener {
+            val mp = MeetingPoint(
+                coordinate_x = marker.position.latitude.toString(),
+                coordinate_y = marker.position.longitude.toString(),
+                description = view.findViewById<EditText>(R.id.create_meeting_point_description).text.toString(),
+                UserId = ACTIVITY.user.id,
+                GroupId = ACTIVITY.user.UserGroup.GroupId,
+                expiration_date = getExpirationDate(view.findViewById<Spinner>(R.id.create_meeting_point_spinner).selectedItem.toString())
+            )
+
+            createMeetingPoint(mp, dialog)
+        }
+
+        dialog.show()
+    }
+
+    private fun createMeetingPoint(meetingPoint: MeetingPoint, dialog: BottomSheetDialog) {
+        Log.d(TAG, "createMeetingPoint")
+
+            meetingpointHttp.create(meetingPoint, ACTIVITY.token, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d(TAG, "createMeetingPoint - onResponse")
+                createPointMarker?.remove()
+                createPointMarker = null
+                sendNotifications("Meeting notification", "Your friend " + ACTIVITY.user.username + " asks you to join him !", null)
+                dialog.hide()
+                getMeetingPointsNow()
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.d(TAG, "createMeetingPoint - onError")
+                Log.d(TAG, error.toString())
+            }
+
+        })
+    }
+
+    private fun getExpirationDate(t: String): Date {
+        val time = Date()
+        Log.d("TIME = ", time.time.toString())
+        when (t) {
+            "30min" -> {
+                time.time = time.time + (30 * 60 * 1000)
+            }
+            "1h"    -> { time.time = time.time + (60 * 60 * 1000) }
+            "1h30"  -> { time.time = time.time + (90 * 60 * 1000) }
+            "2h"    -> { time.time = time.time + (120 * 60 * 1000) }
+        }
+
+        return time
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -836,7 +927,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     val placeLocation = data!!.getParcelableExtra<LatLng>("location")
                     if(checkGps()) {
                         getDeviceLocation()
-                        generateDirection(userLocation, placeLocation)
+                        generateDirection(userLocation!!, placeLocation)
                     }
                 }
             }
@@ -845,7 +936,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     val placeLocation = data!!.getParcelableExtra<LatLng>("location")
                     if(checkGps()) {
                         getDeviceLocation()
-                        generateDirection(userLocation, placeLocation)
+                        generateDirection(userLocation!!, placeLocation)
                     }
                 }
             }
@@ -877,12 +968,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             }
         }, Response.ErrorListener {
             Log.d(TAG, it.toString())
+            createDialolg("Error", "Can't generate direction", "Ok", null, null, null)
         })
     }
 
     fun getMeetingPointsNow() {
         Log.d(TAG, "getMeetingPointsNow")
-        MeetingPointHttp(ACTIVITY).getNow(ACTIVITY.group.id, object: VolleyCallbackArray {
+        meetingpointHttp.getNow(ACTIVITY.group.id, object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d(TAG, "getMeetingPointsNow - onResponse")
                 meetingPointsList = Mapper().mapper(array)
@@ -904,21 +996,62 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
         meetingPointsList.forEach {meetingPoint ->
             val user = ACTIVITY.group.members.filter { it.id == meetingPoint.UserId }[0]
-            meetingPointMarkerList.add(addMarker(ACTIVITY.user.username, null, "show_meeting_point " + meetingPoint.id.toString(), LatLng(meetingPoint.coordinate_x.toDouble(), meetingPoint.coordinate_y.toDouble()), bitmap, true))
+            meetingPointMarkerList.add(addMarker(user.username, null, "show_meeting_point " + meetingPoint.id.toString(), LatLng(meetingPoint.coordinate_x.toDouble(), meetingPoint.coordinate_y.toDouble()), bitmap, true))
         }
 
     }
 
     private fun displayMeetingPointShowActivity(marker: Marker) {
         Log.d(TAG, "displayMeetingPointShowActivity")
-        val intent = Intent(context, ShowMeetingPointActivity::class.java)
+//        val intent = Intent(context, ShowMeetingPointActivity::class.java)
+//        val mp = meetingPointsList.filter { it.id == marker.tag.toString().split(" ")[1].toInt() }[0]
+//        intent.putExtra("meetingpoint", mp)
+//        intent.putExtra("token", ACTIVITY.token)
+//        val creator = ACTIVITY.group.members.filter { it.id == mp.UserId }[0]
+//        intent.putExtra("user", creator)
+//        intent.putExtra("creator", creator.id == ACTIVITY.user.id)
+//        startActivityForResult(intent, MEETINGPOINT_ACTIVITY_RESULT)
+
+        val dialog = BottomSheetDialog(ACTIVITY)
+        val view = layoutInflater.inflate(R.layout.dialog_show_meetingpoint, null)
         val mp = meetingPointsList.filter { it.id == marker.tag.toString().split(" ")[1].toInt() }[0]
-        intent.putExtra("meetingpoint", mp)
-        intent.putExtra("token", ACTIVITY.token)
         val creator = ACTIVITY.group.members.filter { it.id == mp.UserId }[0]
-        intent.putExtra("user", creator)
-        intent.putExtra("creator", creator.id == ACTIVITY.user.id)
-        startActivityForResult(intent, MEETINGPOINT_ACTIVITY_RESULT)
+
+        view.findViewById<EditText>(R.id.show_meeting_point_description).setText(mp.description)
+        dialog.setContentView(view)
+        if(checkGps()) {
+            val direction = view.findViewById<TextView>(R.id.show_meeting_point_direction)
+            direction.visibility = View.VISIBLE
+            direction.setOnClickListener {
+                getDeviceLocation()
+                println("user = " + userLocation)
+                println("marker = " + marker.position)
+                generateDirection(userLocation!!, marker.position)
+                dialog.hide()
+            }
+        }
+
+        if(creator.id == ACTIVITY.user.id) {
+            val delete = view.findViewById<TextView>(R.id.show_meeting_point_delete)
+            delete.visibility = View.VISIBLE
+            delete.setOnClickListener {
+                meetingpointHttp.delete(mp.id!!, ACTIVITY.token, object : VolleyCallback {
+                    override fun onResponse(jsonObject: JSONObject) {
+                        Log.d(TAG, "SHOW MEETING POINT - delete - onResponse")
+                        getMeetingPointsNow()
+                        dialog.hide()
+                    }
+
+                    override fun onError(error: VolleyError) {
+                        Log.d(TAG, "SHOW MEETING POINT - delete - onError")
+                        println(error.toString())
+                    }
+                })
+            }
+            view.findViewById<TextView>(R.id.show_meeting_point_username).text = "By ${creator.username}"
+        }
+
+        dialog.show()
     }
 
     //CHAT FUNCTIONS

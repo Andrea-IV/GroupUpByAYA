@@ -2,7 +2,6 @@ package com.andrea.groupup
 
 import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -10,15 +9,13 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.RequiresApi
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.PopupMenu
-import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -100,7 +97,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         if(localPlace.Ratings.toString() == "null"){
             findViewById<TextView>(R.id.rating).text = resources.getText(R.string.no_rating)
         }else{
-            findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString() + " /5"
+            findViewById<TextView>(R.id.rating).text = localPlace.Ratings.toString()
         }
 
         findViewById<TextView>(R.id.distance).text = localPlace.distance.toString() + " km"
@@ -273,11 +270,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private fun focusTags(){
         findViewById<TextView>(R.id.tagsTitle).setTextColor(ContextCompat.getColor(this, R.color.selectedShadedText))
         findViewById<TextView>(R.id.descriptionTitle).setTextColor(ContextCompat.getColor(this, R.color.shadedText))
-        val cl = findViewById<ConstraintLayout>(R.id.activity_constraint)
-        val cs = ConstraintSet()
-        cs.clone(cl)
-        cs.setHorizontalBias(R.id.selected, 0.39f)
-        cs.applyTo(cl)
         findViewById<TextView>(R.id.description).visibility = View.GONE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.VISIBLE
     }
@@ -285,11 +277,6 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private fun focusDescription(){
         findViewById<TextView>(R.id.descriptionTitle).setTextColor(ContextCompat.getColor(this, R.color.selectedShadedText))
         findViewById<TextView>(R.id.tagsTitle).setTextColor(ContextCompat.getColor(this, R.color.shadedText))
-        val cl = findViewById<ConstraintLayout>(R.id.activity_constraint)
-        val cs = ConstraintSet()
-        cs.clone(cl)
-        cs.setHorizontalBias(R.id.selected, 0.18f)
-        cs.applyTo(cl)
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }
@@ -297,7 +284,7 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private fun changePhoto(isNext: Boolean){
         if(localPlace.Photos.size == 0){
             actualPhotoIndex = 0
-            findViewById<ImageView>(R.id.imageView2).setImageResource(R.drawable.example)
+            findViewById<ImageView>(R.id.imageView2).setImageDrawable(null)
             findViewById<ImageView>(R.id.deletePhoto).visibility = View.GONE
         }else{
             if(isNext){

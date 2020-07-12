@@ -31,6 +31,7 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
 
     var arrayList = items
     var tempList = ArrayList<EventDisplay>()
+    var done = false
 
     //view holder is used to prevent findViewById calls
     private class EventViewHolder {
@@ -41,11 +42,6 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
     @RequiresApi(Build.VERSION_CODES.O)
     override fun getView(i: Int, view: View?, viewGroup: ViewGroup): View {
         var view = view
-
-        tempList.clear()
-        for (i in 0 until arrayList.size) {
-            tempList.add(arrayList[i])
-        }
 
         val viewHolder: EventViewHolder
 
@@ -93,7 +89,10 @@ class EventAdapter(items: ArrayList<EventDisplay>, ctx: Context) :
     }
 
     fun displayOnlyDate(date: String){
-        Log.d("DATE", date)
+        if(!done){
+            tempList.addAll(arrayList)
+            done = true
+        }
         arrayList.clear()
 
         if (date.isEmpty()) {

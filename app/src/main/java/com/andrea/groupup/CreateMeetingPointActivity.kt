@@ -1,8 +1,6 @@
 package com.andrea.groupup
 
-import android.media.Image
 import android.os.Bundle
-import android.text.format.DateUtils
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -10,7 +8,6 @@ import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.andrea.groupup.Http.Mapper.Mapper
 import com.andrea.groupup.Http.MeetingPointHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.MeetingPoint
