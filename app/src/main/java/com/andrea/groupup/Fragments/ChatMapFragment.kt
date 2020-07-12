@@ -6,6 +6,7 @@ import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
 import android.os.Bundle
@@ -50,10 +51,11 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.scaledrone.lib.*
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_friends.*
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
+import kotlinx.android.synthetic.main.list_of_places.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.beans.PropertyChangeSupport
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -99,21 +101,20 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private var meetingPointMarkerList = ArrayList<Marker>()
 
 
-    private lateinit var sharePositionHandler: Handler
+    /*private lateinit var sharePositionHandler: Handler
     private val checkPositionShareStateRunnable =  object: Runnable {
         override fun run() {
             checkUserPositionShareState()
             sharePositionHandler.postDelayed(this, 5000)
         }
-    }
+    }*/
 //    private lateinit var sharePositionHandler: Handler
     private lateinit var friendsLocationHandler: Handler
     private val getFriendsLocationRunnable = object: Runnable {
         override fun run() {
             getFriendsLocation()
-            friendsLocationHandler.postDelayed(this, 5000)
             checkUserPositionShareState()
-            friendsLocationHandler.postDelayed(this, 1000)
+            friendsLocationHandler.postDelayed(this, 5000)
         }
 
     }
@@ -177,12 +178,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
 //        getLocalPlaces(null)
 
+        println("group = ${ACTIVITY.group.members.size}")
+
+        val layout = view.map_layout
         ACTIVITY.group.members.forEach {
-            Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
-            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
+            val target = object : com.squareup.picasso.Target {
                 override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
                     // loaded bitmap is here (bitmap)
                     Log.d(TAG, "onBitmapLoaded -> ${it.username}")
+                    println("user = ${it.id} + ${it.username}")
                     friendsBitmap[it.id] = bitmap
                 }
 
@@ -193,7 +197,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
                     Log.d(TAG, "onBitmapFailed -> ${it.username}")
                 }
-            })
+            }
+            val imageView = ImageView(ACTIVITY)
+            imageView.tag = target
+            imageView.visibility = View.GONE
+            layout.addView(imageView)
+            Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
+            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(target)
         }
 
         preferences = ACTIVITY.getSharedPreferences("groupup", Context.MODE_PRIVATE)
@@ -216,9 +226,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         messageAdapter = MessageAdapter(ACTIVITY)
         messagesView = view.findViewById(R.id.messages_view) as ListView
         messagesView!!.adapter = messageAdapter
-        data = MemberData(ACTIVITY.user.username, getRandomColor())
+        data = MemberData(ACTIVITY.user.username, ACTIVITY.user.id.toString())
         channelID = getString(R.string.chat_channel)
-        roomName = "observable-"+ACTIVITY.group.name+"___"+ACTIVITY.group.id
+        roomName = "observable-"+ACTIVITY.group.name+"__---__"+ACTIVITY.group.id
         scaledrone = Scaledrone(channelID, data)
         scaledrone!!.connect(object : Listener {
             override fun onOpen() {
@@ -403,7 +413,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     private fun displayFriendsLocation() {
 //        removeMarkers(friendsMarker)
         ACTIVITY.group.members.forEach {
-            if(it.id != ACTIVITY.user.id && it.UserGroup.is_sharing_pos) {
+            if(it.id != ACTIVITY.user.id && it.UserGroup.is_sharing_pos ) {
                 val fm = getFriendMarker(it.username)
 
                 var bDesc: BitmapDescriptor? = null
@@ -417,7 +427,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
                 if(fm !== null) {
                     fm.position = LatLng(it.UserGroup.coordinate_x.toDouble(), it.UserGroup.coordinate_y.toDouble())
-                    fm.setIcon(bDesc)
+                    if (bDesc != null) {
+                        fm.setIcon(bDesc)
+                    }
                 } else {
                     friendsMarker.add(
                         addMarker(
@@ -434,7 +446,10 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                     )
                 }
             } else {
-                removeFriendMarker(it.username)
+                val fm = getFriendMarker(it.username)
+                if(fm != null){
+                    removeFriendMarker(it.username)
+                }
             }
         }
     }
@@ -449,10 +464,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun removeFriendMarker(username: String) {
-        friendsMarker.forEach {
-            if(it.title == username)
+        var i = -1
+        friendsMarker.forEachIndexed { index, it ->
+            if(it.title == username) {
                 it.remove()
+                i = index
+            }
         }
+
+        if(i != -1)
+            friendsMarker.removeAt(i)
     }
 
     private fun checkUserPositionShareState() {
@@ -1038,6 +1059,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         val message = Message(
             editText!!.text.toString(),
             data,
+            null,
             true
         )
         if (message.text.length > 0) {
@@ -1051,6 +1073,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         val message = Message(
             message,
             data,
+            null,
             true
         )
         if (message.text.length > 0) {
@@ -1067,6 +1090,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     override fun onMessage(room: Room?, receivedMessage: com.scaledrone.lib.Message) {
+
+
         val mapper = ObjectMapper()
         try {
             val data = mapper.treeToValue(
@@ -1078,6 +1103,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             val message = Message(
                 data.text,
                 data.memberData,
+                friendsBitmap[data.memberData.color.toInt()],
                 belongsToCurrentUser
             )
             ACTIVITY.runOnUiThread {
@@ -1087,6 +1113,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             if(!isHistory && !belongsToCurrentUser){
                 view?.myChatButton?.setImageResource(R.drawable.chat_notif);
             }
+
         } catch (e: JsonProcessingException) {
             e.printStackTrace()
         }

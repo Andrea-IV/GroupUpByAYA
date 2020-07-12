@@ -145,6 +145,7 @@ class PlanAdapter(var events: ArrayList<Event>, var selectedAdapter: SelectedAda
 
                 override fun onError(error: VolleyError): Unit {
                     Log.e("EVENTS", "Event - onError")
+                    Log.e("EVENTS", error.toString())
                     planAdapter?.notifyDataSetChanged()
                 }
             })
@@ -158,6 +159,7 @@ class PlanAdapter(var events: ArrayList<Event>, var selectedAdapter: SelectedAda
 
                 override fun onError(error: VolleyError): Unit {
                     Log.e("EVENTS", "Event - onError")
+                    Log.e("EVENTS", error.toString())
                     events.remove(event)
                     if(events.isEmpty()){
                         (itemView.context as Activity).finish()
