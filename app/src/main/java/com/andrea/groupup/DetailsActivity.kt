@@ -39,7 +39,7 @@ private const val TAG = "DETAIL"
 class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegate{
 
     private lateinit var groupButton: ImageButton
-    private lateinit var chatMapButton: ImageButton
+    lateinit var chatMapButton: ImageButton
     private lateinit var calendarButton: ImageButton
     private lateinit var exploreButton: ImageButton
     private lateinit var backButton: ImageButton

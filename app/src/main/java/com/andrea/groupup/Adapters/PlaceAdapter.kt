@@ -57,12 +57,11 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
                 putExtra("USER", user)
                 putExtra("TOKEN", token)
             }
-            frag.startActivityForResult(intent, 0);
 
+            frag.startActivityForResult(intent, 0);
         }
 
-        fun bindPlace(place: LocalPlace, layoutManager: StaggeredGridLayoutManager, placeAdapter: PlaceAdapter
-        ) {
+        fun bindPlace(place: LocalPlace, layoutManager: StaggeredGridLayoutManager, placeAdapter: PlaceAdapter) {
             this.place = place
             (view.findViewById<View>(R.id.title) as TextView).text = place.name
             if(place.Photos.isNotEmpty()){
