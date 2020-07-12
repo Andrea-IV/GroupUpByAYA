@@ -90,24 +90,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
             override fun onResponse(array: JSONArray) {
                 Log.d("GROUP", array.toString())
-                listItems.clear()
-                val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
-                for (group: Group in groupRes){
-                    listItems.add(group)
-                }
-                adapter.notifyDataSetChanged()
-
-                gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
-                    override fun onItemClick(parent: AdapterView<*>, view: View,
-                                             position: Int, id: Long) {
-
-                        val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
-                        intent.putExtra("Group", listItems[position])
-                        intent.putExtra("User", user)
-                        intent.putExtra("Token", token)
-                        startActivity(intent)
-                    }
-                }
+                displayGroups(array)
             }
 
             override fun onError(error: VolleyError) {
@@ -505,6 +488,56 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     }
 
     private fun getGroupInfo(){
-        Log.d("Hello", "HERRE")
+        GroupHttp(this).getGroupForUser(user.id.toString(), object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                Log.d("GROUP", array.toString())
+                val verifyGroup =  ArrayList<Group>()
+                val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
+
+                for (group: Group in groupRes){
+                    verifyGroup.add(group)
+                }
+
+                if(isChanged(verifyGroup)){
+                    displayGroups(array)
+                }
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.toString())
+            }
+        })
+    }
+
+    private fun isChanged(verifyGroup: ArrayList<Group>): Boolean{
+        if(verifyGroup.size != listItems.size){
+            return true
+        }
+        if(listItems.equals(verifyGroup)){
+            return true
+        }
+        return false
+    }
+
+    private fun displayGroups(array: JSONArray){
+        listItems.clear()
+        val groupRes = Mapper().mapper<JSONArray, List<Group>>(array)
+        for (group: Group in groupRes){
+            listItems.add(group)
+        }
+        adapter.notifyDataSetChanged()
+
+        gridView.onItemClickListener = object : AdapterView.OnItemClickListener {
+            override fun onItemClick(parent: AdapterView<*>, view: View,
+                                     position: Int, id: Long) {
+
+                val intent = Intent(this@GroupActivity, DetailsActivity::class.java)
+                intent.putExtra("Group", listItems[position])
+                intent.putExtra("User", user)
+                intent.putExtra("Token", token)
+                startActivity(intent)
+            }
+        }
     }
 }

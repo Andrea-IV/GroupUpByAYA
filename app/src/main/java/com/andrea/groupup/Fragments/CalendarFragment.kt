@@ -126,10 +126,10 @@ class CalendarFragment : BaseFragment() {
                     val month = date.substring(0, date.indexOf("-"))
                     val day = date.substring(date.indexOf("-") + 1, date.lastIndex + 1)
                     calendar.set(year.toInt(), month.toInt() - 1, day.toInt())
-                    events.add(EventDay(calendar, R.drawable.ic_place_primary, R.color.colorPrimary));
+                    events.add(EventDay(calendar, R.drawable.ic_place_primary, R.color.colorPrimary))
                 }
 
-                calendarView.setEvents(events);
+                calendarView.setEvents(events)
                 calendarView.setOnDayClickListener(object : OnDayClickListener {
                     @SuppressLint("SimpleDateFormat")
                     override fun onDayClick(eventDay: EventDay) {
