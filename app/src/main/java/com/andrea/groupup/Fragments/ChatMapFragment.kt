@@ -51,6 +51,7 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.scaledrone.lib.*
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_chat_map.view.*
+import kotlinx.android.synthetic.main.list_of_places.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.beans.PropertyChangeSupport
@@ -169,12 +170,15 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
 //        getLocalPlaces(null)
 
+        println("group = ${ACTIVITY.group.members.size}")
+
+        val layout = view.map_layout
         ACTIVITY.group.members.forEach {
-            Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
-            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(object : com.squareup.picasso.Target {
+            val target = object : com.squareup.picasso.Target {
                 override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
                     // loaded bitmap is here (bitmap)
                     Log.d(TAG, "onBitmapLoaded -> ${it.username}")
+                    println("user = ${it.id} + ${it.username}")
                     friendsBitmap[it.id] = bitmap
                 }
 
@@ -185,7 +189,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
                     Log.d(TAG, "onBitmapFailed -> ${it.username}")
                 }
-            })
+            }
+            val imageView = ImageView(ACTIVITY)
+            imageView.tag = target
+            imageView.visibility = View.GONE
+            layout.addView(imageView)
+            Log.d("PICASSO", "${Constants.BASE_URL}/${it.pp_link}")
+            Picasso.get().load("${Constants.BASE_URL}/${it.pp_link}").into(target)
         }
 
         preferences = ACTIVITY.getSharedPreferences("groupup", Context.MODE_PRIVATE)
@@ -441,10 +451,16 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     }
 
     private fun removeFriendMarker(username: String) {
-        friendsMarker.forEach {
-            if(it.title == username)
+        var i = -1
+        friendsMarker.forEachIndexed { index, it ->
+            if(it.title == username) {
                 it.remove()
+                i = index
+            }
         }
+
+        if(i != -1)
+            friendsMarker.removeAt(i)
     }
 
     private fun checkUserPositionShareState() {
