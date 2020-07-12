@@ -421,11 +421,13 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
     override fun onResume() {
         super.onResume()
+        infoGroupHandler.post(groupInfoRunnable)
         uploadReceiver.register(this)
     }
 
     override fun onPause() {
         super.onPause()
+        infoGroupHandler.removeCallbacks(groupInfoRunnable)
         uploadReceiver.unregister(this)
     }
 

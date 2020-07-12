@@ -7,6 +7,8 @@ import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -55,6 +57,14 @@ class ExploreFragment : BaseFragment() {
     lateinit var group: Group
     lateinit var mView: View
 
+    private val localPlaceInfoRunnable =  object: Runnable {
+        override fun run() {
+            getDeviceLocation(true)
+            infoLocalPlaceHandler.postDelayed(this, 5000)
+        }
+    }
+    private lateinit var infoLocalPlaceHandler: Handler
+
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -64,14 +74,27 @@ class ExploreFragment : BaseFragment() {
         group = ACTIVITY.group
         token = ACTIVITY.token
 
-        getDeviceLocation()
-        //searchInit()
+        getDeviceLocation(false)
+        searchInit()
 
         mView.findViewById<ImageView>(R.id.filter).setOnClickListener {
             initMenu(it)
         }
 
+        infoLocalPlaceHandler = Handler(Looper.getMainLooper())
+        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
+
         return mView
+    }
+
+    override fun onResume() {
+        super.onResume()
+        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        infoLocalPlaceHandler.removeCallbacks(localPlaceInfoRunnable)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -93,7 +116,7 @@ class ExploreFragment : BaseFragment() {
 
         allListItems.clear()
         listItems.clear()
-        getDeviceLocation()
+        getDeviceLocation(false)
     }
 
     private fun initMenu(it: View){
@@ -148,25 +171,17 @@ class ExploreFragment : BaseFragment() {
         }
     }
 
-    private fun initLocalPlaces(location: Location?) {
-        Log.d("LOCALPLACE", location.toString())
+    private fun initLocalPlaces(location: Location?, verify: Boolean) {
         if (location != null) {
             LocalPlaceHttp(this.requireContext()).getAllInfoLocalplace(group.id.toString(), location.latitude.toString(), location.longitude.toString(), token, object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
                     Log.d("LOCALPLACE", array.toString())
                     val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                    for(localPlace in lpRes) {
-                        listItems.add(localPlace)
-                        allListItems.add(localPlace)
+                    if(!verify){
+                        setLocalPlaceDisplay(lpRes)
+                    }else if(!allListItems.equals(lpRes)){
+                        setLocalPlaceDisplay(lpRes)
                     }
-
-                    layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-                    layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
-                    val recyclerView: RecyclerView = mView.findViewById(R.id.recyclerView)
-                    recyclerView.layoutManager = layoutManager
-
-                    adapter = PlaceAdapter(listItems, token, group, ACTIVITY.user, layoutManager, requireContext(), ctx)
-                    recyclerView.adapter = adapter
                 }
 
                 override fun onError(error: VolleyError): Unit {
@@ -174,15 +189,15 @@ class ExploreFragment : BaseFragment() {
                 }
             })
         }else{
-            LocalPlaceHttp(this.requireContext()).getAllWithTrad(Locale.getDefault().language, token, object: VolleyCallbackArray {
+            LocalPlaceHttp(this.requireContext()).getAll(object: VolleyCallbackArray {
                 override fun onResponse(array: JSONArray) {
-//                    Log.d("LOCALPLACE", array.toString())
-//                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-//                    for(localPlace in lpRes.asReversed()) {
-//                        listItems.add(localPlace)
-//                    }
-//
-//                    adapter.notifyDataSetChanged()
+                    Log.d("LOCALPLACE", array.toString())
+                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
+                    if(!verify){
+                        setLocalPlaceDisplay(lpRes)
+                    }else if(!allListItems.equals(lpRes)){
+                        setLocalPlaceDisplay(lpRes)
+                    }
                 }
 
                 override fun onError(error: VolleyError): Unit {
@@ -192,14 +207,31 @@ class ExploreFragment : BaseFragment() {
         }
     }
 
-    private fun getDeviceLocation() {
+    private fun getDeviceLocation(verify: Boolean) {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
         mFusedLocationProviderClient.lastLocation.addOnSuccessListener { location : Location? ->
-            initLocalPlaces(location)
+            initLocalPlaces(location, verify)
         }
     }
 
-    /*private fun searchInit(){
+    private fun setLocalPlaceDisplay(lpRes: List<LocalPlace>){
+        allListItems.clear()
+        listItems.clear()
+        for(localPlace in lpRes) {
+            listItems.add(localPlace)
+            allListItems.add(localPlace)
+        }
+
+        layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        layoutManager.gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
+        val recyclerView: RecyclerView = mView.findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = layoutManager
+
+        adapter = PlaceAdapter(listItems, token, group, ACTIVITY.user, layoutManager, requireContext(), ctx)
+        recyclerView.adapter = adapter
+    }
+
+    private fun searchInit(){
         searchView = mView.findViewById(R.id.searchBar)
         searchView.queryHint = getString(R.string.searchHint)
         searchView.imeOptions = EditorInfo.IME_ACTION_DONE
@@ -214,5 +246,5 @@ class ExploreFragment : BaseFragment() {
                 return false
             }
         })
-    }*/
+    }
 }
