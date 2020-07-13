@@ -2,6 +2,8 @@ package com.andrea.groupup
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -65,10 +67,25 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         from = intent.getStringExtra("FROM")
 
         findViewById<Button>(R.id.button2).setOnClickListener {
-            val data = Intent()
-            data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
-            setResult(1, data)
-            finish()
+
+            AlertDialog
+                .Builder(this)
+                .setTitle("Direction")
+                .setMessage("Would you like to show the direction on Google map or on our application ?")
+                .setCancelable(false)
+                .setPositiveButton("Google map", DialogInterface.OnClickListener { dialog, which ->
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${localPlace.coordinate_x},${localPlace.coordinate_y}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                    mapIntent.setPackage("com.google.android.apps.maps")
+                    startActivity(mapIntent)
+                })
+                .setNegativeButton("Here", DialogInterface.OnClickListener { dialog, which ->
+                    val data = Intent()
+                    data.putExtra("location", LatLng(localPlace.coordinate_x.toDouble(), localPlace.coordinate_y.toDouble()))
+                    setResult(1, data)
+                    finish()
+                })
+                .show()
         }
 
         if(!localPlace.Photos.isNullOrEmpty()){
@@ -684,5 +701,12 @@ class PlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                 Log.e("EVENTS", error.toString())
             }
         })
+    }
+
+    private fun openGoogleMap(lat: Double, lng: Double) {
+        val gmmIntentUri = Uri.parse("google.navigation:q=$lat,$lng")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+        mapIntent.setPackage("com.google.android.apps.maps")
+        startActivity(mapIntent)
     }
 }

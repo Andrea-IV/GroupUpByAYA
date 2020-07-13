@@ -1,32 +1,26 @@
 package com.andrea.groupup
 
 import android.animation.ValueAnimator
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
 import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginResult
-import com.facebook.login.widget.LoginButton
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.gson.Gson
 import org.json.JSONObject
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -82,6 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         val button2 = findViewById<Button>(R.id.button2)
         button2.setOnClickListener{
+
             val intent = Intent(this, GroupActivity::class.java)
             UserHttp(this).login("bunuu", "test", firebaseToken!!, object: VolleyCallback {
                 override fun onResponse(jsonObject: JSONObject) {

@@ -25,7 +25,8 @@ const val PLACE_STRING = "PLACE"
 class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String, val group: Group, val user:User, var layoutManager: StaggeredGridLayoutManager, private val ctx: Context, val frag: ExploreFragment) : RecyclerView.Adapter<PlaceAdapter.PlaceHolder>()  {
 
     var arrayList = places
-    var tempList = ArrayList(arrayList)
+    var tempList = ArrayList<LocalPlace>()
+    var done = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceHolder {
         return PlaceHolder(LayoutInflater.from(ctx).inflate(R.layout.list_of_places, parent, false), token, group, user, frag)
@@ -56,12 +57,11 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
                 putExtra("USER", user)
                 putExtra("TOKEN", token)
             }
-            frag.startActivityForResult(intent, 0);
 
+            frag.startActivityForResult(intent, 0);
         }
 
-        fun bindPlace(place: LocalPlace, layoutManager: StaggeredGridLayoutManager, placeAdapter: PlaceAdapter
-        ) {
+        fun bindPlace(place: LocalPlace, layoutManager: StaggeredGridLayoutManager, placeAdapter: PlaceAdapter) {
             this.place = place
             (view.findViewById<View>(R.id.title) as TextView).text = place.name
             if(place.Photos.isNotEmpty()){
@@ -73,6 +73,10 @@ class PlaceAdapter(private val places: ArrayList<LocalPlace>, val token: String,
     }
 
     fun filter(text: String?) {
+        if(!done){
+            tempList.addAll(arrayList)
+            done = true
+        }
         val text = text!!.toLowerCase(Locale.getDefault())
         arrayList.clear()
 
