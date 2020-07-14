@@ -542,14 +542,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     override fun onStop() {
         super.onStop()
         context?.unregisterReceiver(gpsBroadcastReceiver)
+        friendsLocationHandler.removeCallbacks(getFriendsLocationRunnable)
     }
 
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
-//        sharePositionHandler.post(checkPositionShareStateRunnable)
-//        friendsLocationHandler.post(getFriendsLocationRunnable)
-
+        friendsLocationHandler.post(getFriendsLocationRunnable)
         if(checkGps()) getDeviceLocation { }
         getMeetingPointsNow()
     }
