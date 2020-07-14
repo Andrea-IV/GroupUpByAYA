@@ -177,6 +177,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         cs.setHorizontalBias(R.id.selected, 0.39f)
         cs.applyTo(cl)
         findViewById<TextView>(R.id.description).visibility = View.GONE
+        findViewById<TextView>(R.id.name).visibility = View.GONE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.VISIBLE
     }
 
@@ -189,6 +190,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
         cs.setHorizontalBias(R.id.selected, 0.18f)
         cs.applyTo(cl)
         findViewById<TextView>(R.id.description).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.name).visibility = View.VISIBLE
         findViewById<RecyclerView>(R.id.listOfTags).visibility = View.GONE
     }
 
@@ -309,6 +311,7 @@ class CreatePlaceActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.D
                 .setMaxRetries(2)
                 .startUpload()
         }
+        setResult(1)
         finish()
     }
 

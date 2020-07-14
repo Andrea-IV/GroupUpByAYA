@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onError(error: VolleyError) {
                     Log.e("USER", "login - onError")
-                    Log.e("USER", error.javaClass.toString())
+                    Log.e("USER", error.message.toString())
                 }
             })
         }
@@ -163,8 +163,9 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun onError(error: VolleyError) {
-                        Log.e("USER", "login - onError")
-                        Log.e("USER", error.javaClass.toString())
+                        Log.e("USER", "register - onError")
+                        Log.e("USER", error.toString())
+                        Log.e("USER", error.message.toString())
                         findViewById<TextView>(R.id.error).text = getString(R.string.errorUsername)
                         findViewById<TextView>(R.id.error).visibility = View.VISIBLE
                     }
@@ -272,7 +273,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onError(error: VolleyError) {
                 Log.e("USER", "login - onError")
-                Log.e("USER", error.javaClass.toString())
+                Log.e("USER", error.toString())
 
                 findViewById<TextView>(R.id.error).text = getString(R.string.error_login)
                 findViewById<TextView>(R.id.error).visibility = View.VISIBLE
