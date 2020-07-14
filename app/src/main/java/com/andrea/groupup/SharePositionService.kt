@@ -96,7 +96,7 @@ class SharePositionService : Service() {
         var time = preferences.getInt("timeLeft", 3509000)
         var min = time / 1000 / 60
         var sec = time / 1000 % 60
-        time -= 1000
+        time -= 5000
         edit.putInt("timeLeft", time)
         edit.apply()
 

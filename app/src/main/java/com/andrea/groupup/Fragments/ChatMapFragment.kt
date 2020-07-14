@@ -824,7 +824,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
         intent.putExtra("GROUP", ACTIVITY.group)
         intent.putExtra("TOKEN", ACTIVITY.token)
         intent.putExtra("location", marker.position)
-        this.startActivity(intent)
+        this.startActivityForResult(intent, 5)
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
@@ -958,6 +958,9 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                         }
                     }
                 }
+            }
+            5 -> {
+                getLocalPlaces(userLocation)
             }
         }
     }
