@@ -172,39 +172,22 @@ class ExploreFragment : BaseFragment() {
     }
 
     private fun initLocalPlaces(location: Location?, verify: Boolean) {
-        if (location != null) {
-            LocalPlaceHttp(this.requireContext()).getAllInfoLocalplace(group.id.toString(), location.latitude.toString(), location.longitude.toString(), token, object: VolleyCallbackArray {
-                override fun onResponse(array: JSONArray) {
-                    Log.d("LOCALPLACE", array.toString())
-                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                    if(!verify){
-                        setLocalPlaceDisplay(lpRes)
-                    }else if(!allListItems.equals(lpRes)){
-                        setLocalPlaceDisplay(lpRes)
-                    }
+        LocalPlaceHttp(this.requireContext()).getAllInfoLocalplace(group.id.toString(), location?.latitude.toString(), location?.longitude.toString(), token, object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                Log.d("LOCALPLACEuwu", array.toString())
+                val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
+                println("localplacesuwu = " + lpRes.toString())
+                if(!verify){
+                    setLocalPlaceDisplay(lpRes)
+                }else if(!allListItems.equals(lpRes)){
+                    setLocalPlaceDisplay(lpRes)
                 }
+            }
 
-                override fun onError(error: VolleyError): Unit {
-                    Log.e("LOCALPLACE", "getLocalPlaces - onError")
-                }
-            })
-        }else{
-            LocalPlaceHttp(this.requireContext()).getAll(object: VolleyCallbackArray {
-                override fun onResponse(array: JSONArray) {
-                    Log.d("LOCALPLACE", array.toString())
-                    val lpRes = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                    if(!verify){
-                        setLocalPlaceDisplay(lpRes)
-                    }else if(!allListItems.equals(lpRes)){
-                        setLocalPlaceDisplay(lpRes)
-                    }
-                }
-
-                override fun onError(error: VolleyError): Unit {
-                    Log.e("LOCALPLACE", "getLocalPlaces - onError")
-                }
-            })
-        }
+            override fun onError(error: VolleyError): Unit {
+                Log.e("LOCALPLACE", "getLocalPlaces - onError")
+            }
+        })
     }
 
     private fun getDeviceLocation(verify: Boolean) {
