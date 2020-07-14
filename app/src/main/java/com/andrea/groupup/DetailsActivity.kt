@@ -202,11 +202,14 @@ class DetailsActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Deleg
     override fun onResume() {
         super.onResume()
         uploadReceiver.register(this)
+        getGroupInfoHandler.post(getGroupInfoRunnable)
     }
 
     override fun onPause() {
         super.onPause()
         uploadReceiver.unregister(this)
+        getGroupInfoHandler.removeCallbacks(getGroupInfoRunnable)
+
     }
 
     override fun onProgress(progress: Int) {
