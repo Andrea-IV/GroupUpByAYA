@@ -2,7 +2,6 @@ package com.andrea.groupup
 
 import android.Manifest
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,6 +25,7 @@ import com.andrea.groupup.Models.FriendRequest
 import com.andrea.groupup.Models.Group
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
+import com.facebook.login.LoginManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.squareup.picasso.Picasso
@@ -48,6 +48,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
     private lateinit var token: String
     private lateinit var context: Context
     private var listItems: ArrayList<Group> = arrayListOf<Group>()
+    private var facebookLogin = false
 
     private var permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private var storagePermissionGranted = false
@@ -69,6 +70,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
         user = intent.getSerializableExtra("User") as User
         token = intent.getStringExtra("Token")
+        facebookLogin = intent.getBooleanExtra("FacebookLogin", false)
 
         context = this
 
@@ -176,6 +178,10 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                         goToFriends()
                         true
                     }
+                    R.id.logout -> {
+                        logout()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -248,8 +254,6 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
 
         val username: EditText = view.findViewById(R.id.username)
         username.hint = user.username
-        val email: EditText = view.findViewById(R.id.email_value)
-        email.hint = user.email
         val password: EditText = view.findViewById(R.id.password_value)
         password.hint = this.resources.getString(R.string.old_password)
         val newPassword: EditText = view.findViewById(R.id.new_password_value)
@@ -258,23 +262,18 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         confirmPassword.hint = this.resources.getString(R.string.confirm_password)
 
         view.findViewById<Button>(R.id.editButton).setOnClickListener {
-            editProfile(username.text.toString(), email.text.toString(), password.text.toString(), newPassword.text.toString(), confirmPassword.text.toString(), dialog)
+            editProfile(username.text.toString(), password.text.toString(), newPassword.text.toString(), confirmPassword.text.toString(), dialog)
         }
         dialog.show()
     }
 
-    private fun editProfile(username: String, email: String, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
+    private fun editProfile(username: String, password: String, newPassword: String, confirmPassword:String, dialog: BottomSheetDialog){
         var usernameToSend = ""
-        var emailToSend = ""
         var passwordToSend = false
         var error = false
 
         if(username.isNotEmpty() || username.isNotBlank()){
             usernameToSend = username.trim()
-        }
-
-        if(email.isNotEmpty() || email.isNotBlank()){
-            emailToSend = email.trim()
         }
 
         if(password.isNotEmpty() && password.isNotBlank() && newPassword.isNotEmpty() && newPassword.isNotBlank() && confirmPassword.isNotEmpty() && confirmPassword.isNotBlank()){
@@ -288,19 +287,19 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
 
         if(!error){
-            editAction(usernameToSend, emailToSend, passwordToSend, password, newPassword, dialog)
+            editAction(usernameToSend, passwordToSend, password, newPassword, dialog)
         }
     }
 
-    private fun editAction(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
+    private fun editAction(usernameToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
         var editDone = false
         if(passwordToSend){
             editDone = true
-            tryLoginBefore(usernameToSend, emailToSend, passwordToSend, password, newPassword, dialog)
+            tryLoginBefore(usernameToSend, passwordToSend, password, newPassword, dialog)
         }else{
             editDone = true
-            val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword)
-            callEdit(params, usernameToSend, emailToSend, dialog)
+            val params = fillParams(usernameToSend, passwordToSend, newPassword)
+            callEdit(params, usernameToSend, dialog)
         }
         if(uri != null){
             if(!editDone){
@@ -310,15 +309,15 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
     }
 
-    private fun tryLoginBefore(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
+    private fun tryLoginBefore(usernameToSend: String, passwordToSend: Boolean, password: String, newPassword: String, dialog: BottomSheetDialog){
         UserHttp(this).baseLogin(user.username, password, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
                 Log.d("LOGIN TRY", jsonObject.toString())
                 token = jsonObject.get("token").toString()
                 token = token.substring(token.indexOf(" ") + 1, token.length)
 
-                val params = fillParams(usernameToSend, emailToSend, passwordToSend, newPassword)
-                callEdit(params, usernameToSend, emailToSend, dialog)
+                val params = fillParams(usernameToSend, passwordToSend, newPassword)
+                callEdit(params, usernameToSend, dialog)
             }
 
             override fun onError(error: VolleyError) {
@@ -330,7 +329,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         })
     }
 
-    private fun callEdit(params: String, usernameToSend: String, emailToSend: String, dialog: BottomSheetDialog){
+    private fun callEdit(params: String, usernameToSend: String, dialog: BottomSheetDialog){
         Log.d("PARAMS", params)
         UserHttp(context).editUser(token, params, object: VolleyCallback {
             override fun onResponse(jsonObject: JSONObject) {
@@ -347,9 +346,6 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                     if(usernameToSend.isNotEmpty() && usernameToSend.isNotBlank()){
                         user.username = usernameToSend
                     }
-                    if(emailToSend.isNotEmpty() && emailToSend.isNotBlank()){
-                        user.email = emailToSend
-                    }
                     dialog.dismiss()
                 }else{
                     dialog.findViewById<TextView>(R.id.error)?.text = getString(R.string.error_login)
@@ -359,13 +355,10 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         })
     }
 
-    private fun fillParams(usernameToSend: String, emailToSend: String, passwordToSend: Boolean, newPassword: String): String{
+    private fun fillParams(usernameToSend: String, passwordToSend: Boolean, newPassword: String): String{
         var params = "{\"id\": ${user.id},"
         if(usernameToSend.isNotEmpty()){
             params += "\"username\":\"$usernameToSend\","
-        }
-        if(emailToSend.isNotEmpty()){
-            params += "\"email\":\"$emailToSend\","
         }
         if(passwordToSend){
             params += "\"password\":\"$newPassword\","
@@ -541,5 +534,14 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
                 startActivity(intent)
             }
         }
+    }
+
+    fun logout() {
+        if (facebookLogin) {
+            LoginManager.getInstance().logOut()
+        }
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 }

@@ -12,5 +12,8 @@
         android:id="@+id/notification"
         android:title="@string/menu_notification"
         android:icon="@drawable/ic_notification_primary"/>
-
+    <item
+            android:id="@+id/logout"
+            android:title="@string/logout"
+            android:icon="@drawable/ic_logout_red"/>
 </menu>

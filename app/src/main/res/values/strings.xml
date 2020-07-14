@@ -83,6 +83,7 @@
     <string name="ask_allowed">Are you OK with sharing this photo to other users on social media?</string>
     <string name="edit_place">Edit Place</string>
     <string name="finish_edit">Finish Edit</string>
+    <string name="logout">Log Out</string>
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>

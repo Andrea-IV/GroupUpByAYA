@@ -1,37 +1,50 @@
 package com.andrea.groupup
 
 import android.animation.ValueAnimator
+import android.app.ProgressDialog
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.andrea.groupup.Http.UserHttp
 import com.andrea.groupup.Http.VolleyCallback
+import com.andrea.groupup.Http.VolleyCallbackArray
 import com.andrea.groupup.Models.User
 import com.android.volley.VolleyError
-import com.facebook.CallbackManager
+import com.facebook.*
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.gson.Gson
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
     lateinit var callbackManager: CallbackManager
+    private val AUTH_TYPE = "rerequest"
 
     private var firebaseToken: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        FacebookSdk.sdkInitialize(this.applicationContext)
         callbackManager = CallbackManager.Factory.create()
+
+        if (AccessToken.getCurrentAccessToken() != null) {
+            val request = GraphRequest.newMeRequest(
+                AccessToken.getCurrentAccessToken()
+            ) { `object`, response -> isAlreadyActive(`object`) }
+            val parameters = Bundle()
+            parameters.putString("fields", "id,email,first_name,last_name")
+            request.parameters = parameters
+            request.executeAsync()
+        }
 
         FirebaseInstanceId.getInstance().instanceId
             .addOnCompleteListener(OnCompleteListener { task ->
@@ -45,68 +58,26 @@ class MainActivity : AppCompatActivity() {
                 Log.d("FIREBASE TOKEN", firebaseToken)
             })
 
-        val button = findViewById<Button>(R.id.button)
-        button.setOnClickListener{
-            val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("Huskky", "test", firebaseToken!!, object: VolleyCallback {
-                override fun onResponse(jsonObject: JSONObject) {
-                    Log.d("USER", "getUser - onResponse")
-                    /*val fileOutputStream: FileOutputStream
-                    try {
-                        fileOutputStream = openFileOutput("token", Context.MODE_PRIVATE)
-                        fileOutputStream.write(jsonObject.get("token").toString().substring().toByteArray())
-                    }catch (e: Exception){
-                        e.printStackTrace()
-                    }*/
-                    val gson = Gson()
-                    val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
-                    intent.putExtra("User", user)
-                    var token = jsonObject.get("token").toString()
-                    token = token.substring(token.indexOf(" ") + 1, token.length)
-                    intent.putExtra("Token", token)
-                    startActivity(intent)
-                }
-
-                override fun onError(error: VolleyError) {
-                    Log.e("USER", "login - onError")
-                    Log.e("USER", error.toString())
-                }
-            })
-        }
-
-        val button2 = findViewById<Button>(R.id.button2)
-        button2.setOnClickListener{
-
-            val intent = Intent(this, GroupActivity::class.java)
-            UserHttp(this).login("bunuu", "test", firebaseToken!!, object: VolleyCallback {
-                override fun onResponse(jsonObject: JSONObject) {
-                    Log.d("USER", "getUser - onResponse")
-                    Log.d("USER", jsonObject.toString())
-                    val gson = Gson()
-                    val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
-                    intent.putExtra("User", user)
-                    var token = jsonObject.get("token").toString()
-                    token = token.substring(token.indexOf(" ") + 1, token.length)
-                    intent.putExtra("Token", token)
-                    startActivity(intent)
-                }
-
-                override fun onError(error: VolleyError) {
-                    Log.e("USER", "login - onError")
-                    Log.e("USER", error.javaClass.toString())
-                }
-            })
-        }
-
-        /*val loginButton = findViewById<LoginButton>(R.id.login_button)
+        val loginButton = findViewById<LoginButton>(R.id.login_button)
         loginButton.setReadPermissions(listOf("public_profile", "email"))
-        // If you are using in a fragment, call loginButton.setFragment(this)
+        loginButton.authType = AUTH_TYPE
 
         // Callback registration
         loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
             override fun onSuccess(loginResult: LoginResult?) {
-                Log.d("TAG", "Success Login")
-                // Get User's Info
+                var mDialog = ProgressDialog(this@MainActivity)
+                mDialog.setMessage("Retrieving data...")
+                mDialog.show()
+
+                val request = GraphRequest.newMeRequest(loginResult!!.accessToken) { obj, _ ->
+                    mDialog.dismiss()
+                    isAlreadyActive(obj)
+                }
+
+                val parameters = Bundle()
+                parameters.putString("fields", "id,email,first_name,last_name")
+                request.parameters = parameters
+                request.executeAsync()
             }
 
             override fun onCancel() {
@@ -116,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             override fun onError(exception: FacebookException) {
                 Toast.makeText(this@MainActivity, exception.message, Toast.LENGTH_LONG).show()
             }
-        })*/
+        })
 
         findViewById<Button>(R.id.loginShow).setOnClickListener {
             showLogin()
@@ -141,6 +112,77 @@ class MainActivity : AppCompatActivity() {
         }
 
         //printHashKey(this.baseContext)
+    }
+
+    private fun isAlreadyActive(obj: JSONObject) {
+
+        UserHttp(this).getByName(obj.getString("email"), object: VolleyCallbackArray {
+            override fun onResponse(array: JSONArray) {
+                Log.d("USER", "getUser - onResponse")
+                Log.d("OBJECT", obj.toString())
+                if(array.toString() == "[]"){
+                    createFacebook(obj)
+                }else {
+                    loginFacebook(obj)
+                }
+
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.javaClass.toString())
+            }
+        })
+    }
+
+    private fun createFacebook(obj: JSONObject){
+        val password = randomPassword()
+        UserHttp(this).createUserFacebook(obj.getString("email"), obj.getString("first_name" ) + obj.getString("last_name"), password, password, obj.getString("id"), object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("USER", "getUser - onResponse")
+                loginAction(obj.getString("first_name" ) + obj.getString("last_name"), password)
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.javaClass.toString())
+            }
+        })
+    }
+
+    private fun loginFacebook(obj: JSONObject){
+        val intent = Intent(this, GroupActivity::class.java)
+        UserHttp(this).facebookLogin(obj.getString("id"), obj.getString("email"), firebaseToken, object: VolleyCallback {
+            override fun onResponse(jsonObject: JSONObject) {
+                Log.d("USER", "loginfacebook done - onResponse")
+                val gson = Gson()
+                val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
+                intent.putExtra("User", user)
+                intent.putExtra("FacebookLogin", true)
+                var token = jsonObject.get("token").toString()
+                token = token.substring(token.indexOf(" ") + 1, token.length)
+                intent.putExtra("Token", token)
+                startActivity(intent)
+            }
+
+            override fun onError(error: VolleyError) {
+                Log.e("USER", "login - onError")
+                Log.e("USER", error.javaClass.toString())
+            }
+        })
+    }
+
+    private fun randomPassword(): String {
+        val generator = Random()
+        val randomStringBuilder = StringBuilder()
+        val randomLength = 20
+        var tempChar: Char
+        for (i in 0 until randomLength) {
+            tempChar = (generator.nextInt(96) + 32).toChar()
+            randomStringBuilder.append(tempChar)
+        }
+
+        return randomStringBuilder.toString().replace("\"", "")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -264,6 +306,7 @@ class MainActivity : AppCompatActivity() {
                 val gson = Gson()
                 val user: User = gson.fromJson(jsonObject.toString(), User::class.java)
                 intent.putExtra("User", user)
+                intent.putExtra("FacebookLogin", false)
                 var token = jsonObject.get("token").toString()
                 token = token.substring(token.indexOf(" ") + 1, token.length)
                 intent.putExtra("Token", token)

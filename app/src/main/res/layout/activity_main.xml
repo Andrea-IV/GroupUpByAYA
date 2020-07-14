@@ -61,6 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:alpha="0"
+            android:visibility="gone"
             android:background="@drawable/input_bg"
             android:ems="10"
             android:hint="@string/password_hint"
@@ -80,6 +81,7 @@
             android:text="@string/login_show"
             android:textColor="@android:color/white"
             android:alpha="0"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="@+id/passwordInput"
             app:layout_constraintStart_toStartOf="@+id/passwordInput"
             app:layout_constraintTop_toBottomOf="@+id/passwordInput" />
@@ -106,6 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:alpha="0"
+            android:visibility="gone"
             android:background="@drawable/input_bg"
             android:ems="10"
             android:hint="@string/email_hint"
@@ -123,6 +126,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:alpha="0"
+            android:visibility="gone"
             android:background="@drawable/login_button_bg"
             android:text="@string/create_account"
             android:textColor="@android:color/white"
@@ -137,29 +141,7 @@
             android:textColor="@android:color/holo_red_light"
             app:layout_constraintEnd_toEndOf="@+id/create"
             app:layout_constraintStart_toStartOf="@+id/create"
-            app:layout_constraintTop_toBottomOf="@+id/create"
-            />
-
-
-    <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Huskky"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="Bunuu"
-            app:layout_constraintBottom_toTopOf="@+id/button"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/create"/>
 
     <Button
             android:id="@+id/loginShow"
@@ -184,4 +166,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/loginShow" />
+
+    <com.facebook.login.widget.LoginButton
+            android:id="@+id/login_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="@+id/createShow"
+            app:layout_constraintStart_toStartOf="@+id/createShow"
+            app:layout_constraintTop_toBottomOf="@+id/createShow" />
 </androidx.constraintlayout.widget.ConstraintLayout>
