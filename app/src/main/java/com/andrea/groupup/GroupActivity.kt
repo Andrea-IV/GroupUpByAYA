@@ -504,6 +504,7 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
             override fun onError(error: VolleyError) {
                 Log.e("USER", "login - onError")
                 Log.e("USER", error.toString())
+                displayGroups(JSONArray())
             }
         })
     }
