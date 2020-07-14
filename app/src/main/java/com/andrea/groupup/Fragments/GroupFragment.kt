@@ -163,8 +163,10 @@ class GroupFragment : BaseFragment() {
 
 
                 override fun onError(error: VolleyError) {
-                    Log.e("USER", "login - onError")
-                    Log.e("USER", error.toString())
+                    val dialog = BottomSheetDialog(ACTIVITY, R.style.DialogStyle)
+                    val view = layoutInflater.inflate(R.layout.dialog_add_user, null)
+                    dialog.setContentView(view)
+                    dialog.show()
                 }
             })
         }

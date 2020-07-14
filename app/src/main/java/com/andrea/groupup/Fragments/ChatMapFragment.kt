@@ -715,7 +715,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 Log.d(TAG, "getLocalPlaces - onResponse")
                 Log.d(TAG, array.toString())
                 localPlaces = Mapper().mapper<JSONArray, List<LocalPlace>>(array)
-                Log.d(TAG, "IS TRAVEL = " + isTravelDisplayed)
+                Log.d(TAG, "IS TRAVEL = $isTravelDisplayed")
                 if(!isTravelDisplayed) {
                     setLocalPlacesMarkers()
                 }
