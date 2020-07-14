@@ -57,12 +57,12 @@ class ExploreFragment : BaseFragment() {
     lateinit var group: Group
     lateinit var mView: View
 
-    private val localPlaceInfoRunnable =  object: Runnable {
-        override fun run() {
-            getDeviceLocation(true)
-            infoLocalPlaceHandler.postDelayed(this, 5000)
-        }
-    }
+//    private val localPlaceInfoRunnable =  object: Runnable {
+//        override fun run() {
+//            getDeviceLocation(true)
+//            infoLocalPlaceHandler.postDelayed(this, 5000)
+//        }
+//    }
     private lateinit var infoLocalPlaceHandler: Handler
 
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -81,20 +81,20 @@ class ExploreFragment : BaseFragment() {
             initMenu(it)
         }
 
-        infoLocalPlaceHandler = Handler(Looper.getMainLooper())
-        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
+//        infoLocalPlaceHandler = Handler(Looper.getMainLooper())
+//        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
 
         return mView
     }
 
     override fun onResume() {
         super.onResume()
-        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
+//        infoLocalPlaceHandler.post(localPlaceInfoRunnable)
     }
 
     override fun onPause() {
         super.onPause()
-        infoLocalPlaceHandler.removeCallbacks(localPlaceInfoRunnable)
+//        infoLocalPlaceHandler.removeCallbacks(localPlaceInfoRunnable)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
