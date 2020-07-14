@@ -319,7 +319,6 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
                 removeMarkers(localPlacesMarkers)
                 displayActualTravel()
             }
-
             isTravelDisplayed = !isTravelDisplayed
         }
 
@@ -579,8 +578,8 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
                 val gson: Gson = Gson()
                 removeMarkers(localPlacesMarkers)
-                todaysTravel = gson.fromJson(jsonObject.toString(), Travel::class.java)
-                actualTravel = todaysTravel
+//                todaysTravel = gson.fromJson(jsonObject.toString(), Travel::class.java)
+                actualTravel = Mapper().mapper(jsonObject)
                 displayActualTravel()
                 isTravelDisplayed = true
                 println(todaysTravel)
@@ -589,6 +588,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
             override fun onError(error: VolleyError) {
                 Log.e(TAG, "getTodaysTravel On Error")
                 Log.e(TAG, error.toString())
+                actualTravel = null
                 isTravelDisplayed = false
             }
         })
