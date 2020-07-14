@@ -542,14 +542,13 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
     override fun onStop() {
         super.onStop()
         context?.unregisterReceiver(gpsBroadcastReceiver)
+        friendsLocationHandler.removeCallbacks(getFriendsLocationRunnable)
     }
 
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
-//        sharePositionHandler.post(checkPositionShareStateRunnable)
-//        friendsLocationHandler.post(getFriendsLocationRunnable)
-
+        friendsLocationHandler.post(getFriendsLocationRunnable)
         if(checkGps()) getDeviceLocation { }
         getMeetingPointsNow()
     }
@@ -724,9 +723,7 @@ class ChatMapFragment : BaseFragment(), OnMapReadyCallback, /*GoogleMap.OnCamera
 
             override fun onError(error: VolleyError): Unit {
                 Log.e(TAG, "getLocalPlaces - onError")
-                Log.e(TAG, error.javaClass.toString())
                 Log.d(TAG, error.toString())
-                Log.d(TAG, error.message)
             }
         })
     }
