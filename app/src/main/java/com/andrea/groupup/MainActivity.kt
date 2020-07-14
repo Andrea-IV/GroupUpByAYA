@@ -237,6 +237,7 @@ class MainActivity : AppCompatActivity() {
             val alpha = animation.animatedValue as Float
             findViewById<Button>(R.id.loginShow).alpha = alpha
             findViewById<Button>(R.id.createShow).alpha = alpha
+            findViewById<LoginButton>(R.id.login_button).alpha = alpha
         }
 
         val fadeIn = ValueAnimator.ofFloat(0f, 1f)
@@ -254,6 +255,7 @@ class MainActivity : AppCompatActivity() {
         fadeOut.start()
         findViewById<Button>(R.id.loginShow).visibility = View.GONE
         findViewById<Button>(R.id.createShow).visibility = View.GONE
+        findViewById<LoginButton>(R.id.login_button).visibility = View.GONE
 
 
         fadeIn.start()
@@ -262,6 +264,7 @@ class MainActivity : AppCompatActivity() {
     private fun returnMain(){
         findViewById<Button>(R.id.loginShow).visibility = View.VISIBLE
         findViewById<Button>(R.id.createShow).visibility = View.VISIBLE
+        findViewById<LoginButton>(R.id.login_button).visibility = View.VISIBLE
 
         val fadeOut = ValueAnimator.ofFloat(1f, 0f)
         fadeOut.duration = 500
@@ -282,6 +285,7 @@ class MainActivity : AppCompatActivity() {
             val alpha = animation.animatedValue as Float
             findViewById<Button>(R.id.loginShow).alpha = alpha
             findViewById<Button>(R.id.createShow).alpha = alpha
+            findViewById<LoginButton>(R.id.login_button).alpha = alpha
         }
 
         fadeOut.start()
@@ -337,6 +341,7 @@ class MainActivity : AppCompatActivity() {
             val alpha = animation.animatedValue as Float
             findViewById<Button>(R.id.loginShow).alpha = alpha
             findViewById<Button>(R.id.createShow).alpha = alpha
+            findViewById<LoginButton>(R.id.login_button).alpha = alpha
         }
 
         val fadeIn = ValueAnimator.ofFloat(0f, 1f)
@@ -352,6 +357,7 @@ class MainActivity : AppCompatActivity() {
         fadeOut.start()
         findViewById<Button>(R.id.loginShow).visibility = View.GONE
         findViewById<Button>(R.id.createShow).visibility = View.GONE
+        findViewById<LoginButton>(R.id.login_button).visibility = View.GONE
         findViewById<EditText>(R.id.passwordConfirmInput).visibility = View.GONE
 
         fadeIn.start()

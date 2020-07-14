@@ -159,6 +159,9 @@ class GroupActivity : AppCompatActivity(), SingleUploadBroadcastReceiver.Delegat
         }
     }
 
+    override fun onBackPressed() {
+    }
+
     private fun menuInit(){
         val menu: ImageView = findViewById(R.id.menu)
 
