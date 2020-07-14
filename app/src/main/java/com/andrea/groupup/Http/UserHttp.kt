@@ -24,7 +24,7 @@ class UserHttp(val context: Context)  {
     }
 
     fun facebookLogin(id: String, email: String, firebase_token: String?, volleyCallback: VolleyCallback) {
-        val body = JSONObject("{\"email\": \"$email\", \"facebook_id\": \"$id\", \"firebase_token\": \"eR0iZQdWSFmv2D6iW_U7uh:APA91bHAOH2TuEo--j1ZAOLhN5a0xQN-xOBCcrzYbjdfPH5-yINigB5_AgM83PBd7OO-E4X1ZPtl9N-5KkoEhOEXRh-pdbleR5iVfXPec3iLowEHLQ0sCLGLgNX5qVb59YA6tRnjg9F\"}")
+        val body = JSONObject("{\"email\": \"$email\", \"facebook_id\": \"$id\", \"firebase_token\": \"$firebase_token\"}")
         http.post("$URL/login/facebook", volleyCallback, body)
     }
 
